@@ -10,6 +10,7 @@ import {
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import Sidebar from '@/components/Sidebar'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -33,21 +34,28 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <header className="flex justify-end items-center p-4 gap-4 h-16">
-            <div className="flex items-center gap-4">
-              <ThemeToggle />
-              <SignedOut>
-                <SignInButton />
-                <SignUpButton />
-              </SignedOut>
-              <SignedIn>
-                <UserButton />
-              </SignedIn>
+      <html lang="en" className="h-full">
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased h-full bg-[#6A4DFC]/20`}>
+          <div className="flex h-full">
+            <Sidebar />
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
+              <header className="flex justify-end items-center px-2 py-2 gap-4 border-l-[1px] border-b-[1px] border-[#6A4DFC] bg-[#6A4DFC]/10 w-fit fixed right-0 top-0 z-50 mt-6 rounded-bl-xl">
+                <div className="flex items-center gap-4">
+                  <ThemeToggle />
+                  <SignedOut>
+                    <SignInButton />
+                    <SignUpButton />
+                  </SignedOut>
+                  <SignedIn>
+                    <UserButton />
+                  </SignedIn>
+                </div>
+              </header>
+              <main className="ml-64">
+                {children}
+              </main>
             </div>
-          </header>
-          {children}
+          </div>
         </body>
       </html>
     </ClerkProvider>
