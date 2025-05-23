@@ -1,7 +1,10 @@
+import { Button } from "@/components/ui/button";
+
+
 export default function Home() {
   return (
     <div>
-      hi
+      <Button variant="default">New Chat</Button>
     </div>
   );
 }
