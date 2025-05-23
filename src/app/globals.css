@@ -74,3 +74,12 @@ html {
 body {
   @apply min-h-full;
 }
+
+@font-face {
+  font-family: "Michroma";
+  src: url("/Fonts/michroma/Michroma.ttf") format("truetype");
+}
+
+.font-michroma {
+  font-family: "Michroma";
+}
