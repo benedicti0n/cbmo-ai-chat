@@ -1,0 +1,1 @@
+after login the jwt token is visible to the url
