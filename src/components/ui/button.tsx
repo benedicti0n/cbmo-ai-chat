@@ -12,7 +12,7 @@ const buttonVariants = cva(
         destructive: "bg-red-600 text-white hover:bg-red-700",
         outline: "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
         secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+        ghost: "text-[#6A4DFC] dark:text-white hover:bg-[#6A4DFC]/30 hover:ring-1 hover:ring-[#6A4DFC] transition-colors duration-100 ease-in-out",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -41,14 +41,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     if (variant === "default") {
       return (
-        <div className="group w-fit rounded-lg p-[1.5px] bg-gradient-to-b from-[#3F29C7] via-[#7D70FF] to-[#3F29C7] shadow-sm">
+        <div className={cn(
+          "group rounded-lg p-[1.5px] bg-gradient-to-b from-[#3F29C7] via-[#7D70FF] to-[#3F29C7] shadow-sm",
+          className?.includes('w-full') ? 'w-full' : 'w-fit'
+        )}>
           <div className="relative rounded-md overflow-hidden bg-gradient-to-b from-[#6A4DFC] via-[#5A3DFD] to-[#5232FC]">
             {/* Hover overlay */}
             <div className="absolute inset-0 bg-[#7D70FF] opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none z-0" />
 
             <Comp
               className={cn(
-                "relative z-10 text-white font-semibold text-sm h-9 px-6 py-2 transition-shadow duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#8F7BFF]",
+                "relative z-10 text-white font-semibold text-sm h-9 px-6 py-2 transition-shadow duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#8F7BFF] w-full",
                 buttonVariants({ size }),
                 className
               )}

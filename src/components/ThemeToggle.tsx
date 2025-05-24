@@ -20,7 +20,7 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="h-9 w-9"
+      className={`h-9 w-9 ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
       {theme === 'light' ? (

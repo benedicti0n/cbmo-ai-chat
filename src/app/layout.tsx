@@ -35,11 +35,11 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" className="h-full">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased h-full bg-[#6A4DFC]/20`}>
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased h-full bg-[#6A4DFC]/[20%]`}>
           <div className="flex h-full">
             <Sidebar />
             <div className="flex-1 flex flex-col h-full overflow-hidden">
-              <header className="flex justify-end items-center px-2 py-2 gap-4 border-l-[1px] border-b-[1px] border-[#6A4DFC] bg-[#6A4DFC]/10 w-fit fixed right-0 top-0 z-50 mt-6 rounded-bl-xl">
+              <header className="flex justify-end items-center px-2 py-2 gap-4 border-l-[1px] border-b-[1px] border-[#6A4DFC] bg-[#6A4DFC]/20 w-fit fixed right-0 top-0 z-50 mt-6 rounded-bl-xl">
                 <div className="flex items-center gap-4">
                   <ThemeToggle />
                   <SignedOut>
