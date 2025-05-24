@@ -25,10 +25,10 @@ const Header = () => {
             <div className="flex items-center gap-2">
                 <ThemeToggle />
                 <SignedOut>
-                    <Link href="/login">
+                    <Link href="/signup">
                         <Button variant="default" className="px-4 py-2 rounded-md bg-[#6A4DFC] text-white hover:bg-[#5a3fe0] transition-colors">
                             <LogIn className="h-4 w-4" />
-                            Log In
+                            Sign Up
                         </Button>
                     </Link>
                 </SignedOut>

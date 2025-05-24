@@ -1,6 +1,7 @@
 import { type Metadata } from 'next'
 import { ClerkProvider } from '@clerk/nextjs'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { Toaster } from 'sonner'
 import './globals.css'
 import DesktopSidebar from '@/components/Sidebar/DesktopSidebar'
 import Header from '@/components/Header'
@@ -44,6 +45,7 @@ export default function RootLayout({
               </main>
             </div>
           </div>
+          <Toaster position="top-right" richColors />
         </body>
       </html>
     </ClerkProvider>
