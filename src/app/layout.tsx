@@ -1,11 +1,10 @@
 import { type Metadata } from 'next'
-import { ClerkProvider } from '@clerk/nextjs'
+import { ClerkProvider, useUser } from '@clerk/nextjs'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Toaster } from 'sonner'
 import './globals.css'
-import DesktopSidebar from '@/components/Sidebar/DesktopSidebar'
 import Header from '@/components/Header'
-import MobileSidebar from '@/components/Sidebar/MobileSidebar'
+import Sidebar from '@/components/Sidebar/Sidebar'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -32,12 +31,7 @@ export default function RootLayout({
       <html lang="en" className="h-full">
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased h-full bg-[#6A4DFC]/[20%]`}>
           <div className="flex h-full">
-            <div className="hidden md:block">
-              <DesktopSidebar />
-            </div>
-            <div className="md:hidden">
-              <MobileSidebar />
-            </div>
+            <Sidebar />
             <div className="flex-1 flex flex-col h-full overflow-hidden">
               <Header />
               <main>

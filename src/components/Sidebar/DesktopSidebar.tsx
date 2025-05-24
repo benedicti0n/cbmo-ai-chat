@@ -7,18 +7,34 @@ import { Button } from '../ui/button';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { Input } from '../ui/input';
 import { useSidebarStore } from '@/stores/useSidebarStore';
+import useChatHistoryStore, { Conversation } from '@/stores/useChatHistoryStore';
+import { useRouter } from 'next/navigation';
+
+interface DesktopSidebarProps {
+  conversations: Conversation[]
+};
 
 type ChatHistoryItem = {
   id: string;
-  title: string;
-  date: string;
 };
 
-export default function DesktopSidebar() {
+export default function DesktopSidebar({ conversations }: DesktopSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
-
+  const { createConversation } = useChatHistoryStore();
   const { isOpen, toggleSidebar, setOpen } = useSidebarStore();
   const { theme } = useThemeStore();
+  const router = useRouter();
+
+  const handleNewChat = () => {
+    const newConversationId = createConversation('New Chat');
+    router.push(`/chat/${newConversationId}`);
+  };
+
+  const filteredConversations = conversations.filter(conv =>
+    conv.title.toLowerCase().includes(searchQuery.toLowerCase())
+  ).sort((a, b) =>
+    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
 
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
@@ -40,28 +56,10 @@ export default function DesktopSidebar() {
     }
   };
 
-  const newChat = () => {
-    setSearchQuery('');
-    if (window.innerWidth <= 768) {
-      setOpen(false);
-    }
-  };
-
-  // Mock chat history data - replace with your actual data
-  const [chatHistory] = useState<ChatHistoryItem[]>([
-    { id: '1', title: 'Chat about project requirements', date: '2023-05-22' },
-    { id: '2', title: 'Discuss new features', date: '2023-05-21' },
-    { id: '3', title: 'Bug fixes discussion', date: '2023-05-20' },
-  ]);
-
-  const filteredChats = chatHistory.filter(chat =>
-    chat.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <>
       {/* Sidebar Toggle Button */}
-      <div className={`fixed top-4 left-4 z-[60] flex items-center justify-center gap-2 backdrop-blur-md ${isOpen ? 'p-0' : 'p-2 rounded-xl border border-[#6A4DFC]'} transition-all duration-100 ease-in-out ${theme === 'light' ? 'bg-[#E1DBFE]' : 'bg-[#231E40]'} `}>
+      <div className={`fixed top-4 left-4 z-[60] flex items-center justify-center gap-2 backdrop-blur-md ${isOpen ? 'p-0' : 'p-2 rounded-xl border border-[#6A4DFC]'} ${theme === 'light' ? 'bg-[#E1DBFE]' : 'bg-[#231E40]'} `}>
         <Button
           onClick={toggleSidebar}
           variant="ghost"
@@ -81,7 +79,7 @@ export default function DesktopSidebar() {
               <Search className={`${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`} style={{ width: '16px', height: '16px' }} />
             </Button>
             <Button
-              onClick={newChat}
+              onClick={handleNewChat}
               variant="ghost"
               className={`p-2 rounded-md hover:bg-[#6A4DFC]/30 dark:hover:bg-[#6A4DFC]/30 transition-colors`}
               aria-label="Toggle theme"
@@ -118,11 +116,14 @@ export default function DesktopSidebar() {
             </div>
           </div>
 
-          <Button variant="default" className="w-full flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            <span className="text-xs">New Chat</span>
+          <Button
+            className="w-full flex items-center justify-center gap-2"
+            variant="default"
+            onClick={handleNewChat}
+          >
+            <Plus className="h-4 w-4" />
+            New Chat
           </Button>
-
 
           {/* Search Chats */}
           <div className="mt-4 relative">
@@ -144,8 +145,8 @@ export default function DesktopSidebar() {
               Recent Chats
             </h3>
             <div className="space-y-1">
-              {filteredChats.length > 0 ? (
-                filteredChats.map((chat) => (
+              {filteredConversations.length > 0 ? (
+                filteredConversations.map((chat) => (
                   <Link
                     key={chat.id}
                     href={`/chat/${chat.id}`}

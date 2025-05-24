@@ -4,7 +4,6 @@ import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css'; // 👈 You can pick other themes from highlight.js too
 import { useThemeStore } from '@/stores/useThemeStore';
 import { Copy, Check } from 'lucide-react';
-import { toast } from 'sonner';
 import { Button } from './ui/button';
 
 type Message = {
