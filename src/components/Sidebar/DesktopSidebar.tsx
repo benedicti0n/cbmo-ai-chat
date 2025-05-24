@@ -61,7 +61,7 @@ export default function DesktopSidebar() {
   return (
     <>
       {/* Sidebar Toggle Button */}
-      <div className={`fixed top-4 left-4 z-[60] flex items-center justify-center gap-2 backdrop-blur-md ${isOpen ? 'p-0' : 'p-2 bg-[#6A4DFC]/30 rounded-xl border border-[#6A4DFC]'} transition-all duration-100 ease-in-out`}>
+      <div className={`fixed top-4 left-4 z-[60] flex items-center justify-center gap-2 backdrop-blur-md ${isOpen ? 'p-0' : 'p-2 rounded-xl border border-[#6A4DFC]'} transition-all duration-100 ease-in-out ${theme === 'light' ? 'bg-[#E1DBFE]' : 'bg-[#6A4DFC]/20'}`}>
         <Button
           onClick={toggleSidebar}
           variant="ghost"
