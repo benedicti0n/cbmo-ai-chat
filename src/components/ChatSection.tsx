@@ -149,19 +149,6 @@ const ChatSection = () => {
         });
     }, []);
 
-    // Initial greeting effect
-    useEffect(() => {
-        if (messages.length === 0) {
-            const greetingMessage: Message = {
-                id: 'greeting',
-                content: "I'm your AI assistant. How can I help you today?",
-                isUser: false,
-                timestamp: new Date(),
-            };
-            setMessages([greetingMessage]);
-        }
-    }, [messages.length]);
-
     return (
         <div
             className={`
