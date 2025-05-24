@@ -14,17 +14,94 @@ import { KeyboardEvent, useState } from "react";
 
 interface ChatBoxProps {
     onSendMessage: (message: string) => void;
+    onStreamingComplete?: (content: string) => void;
+    isStreaming?: boolean;
+    setIsStreaming?: (isStreaming: boolean) => void;
 }
 
-const ChatBox = ({ onSendMessage }: ChatBoxProps) => {
+const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreaming }: ChatBoxProps) => {
     const { theme } = useThemeStore();
-    const [modelName] = useState('OpenAI');
+    const [modelName] = useState('Gemini');
     const [message, setMessage] = useState('');
 
-    const handleSend = () => {
-        if (message.trim()) {
-            onSendMessage(message);
-            setMessage('');
+    const handleSend = async () => {
+        if (!message.trim() || isStreaming) return;
+
+        // Send the user message
+        onSendMessage(message);
+        setMessage('');
+
+        // Set up the streaming state
+        setIsStreaming?.(true);
+        let fullResponse = '';
+
+        try {
+            // Call the Gemini API
+            const response = await fetch('/api/v1/gemini/stream', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    messages: [
+                        {
+                            role: 'user',
+                            content: message,
+                        },
+                    ],
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to get response from Gemini API');
+            }
+
+            // Handle the streaming response
+            const reader = response.body?.getReader();
+            if (!reader) {
+                throw new Error('Failed to read response stream');
+            }
+
+            // Process the stream
+            // Process the stream
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = new TextDecoder().decode(value);
+
+                // Split chunk by lines (in case multiple lines come at once)
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data:')) {
+                        const jsonStr = line.replace(/^data:\s*/, '').trim();
+
+                        if (jsonStr === '[DONE]') {
+                            setIsStreaming?.(false);
+                            return;
+                        }
+
+                        try {
+                            const data = JSON.parse(jsonStr);
+                            const delta = data.text ?? '';
+
+                            fullResponse += delta;
+                            onStreamingComplete?.(fullResponse);
+                        } catch (err) {
+                            console.error('Failed to parse stream chunk:', jsonStr, err);
+                        }
+                    }
+                }
+            }
+
+
+        } catch (error) {
+            console.error('Error streaming response:', error);
+            // Notify the parent component about the error
+            onStreamingComplete?.('Sorry, I encountered an error. Please try again.');
+        } finally {
+            setIsStreaming?.(false);
         }
     };
 
@@ -75,9 +152,9 @@ const ChatBox = ({ onSendMessage }: ChatBoxProps) => {
                                 <Paperclip className="h-4 w-4" />
                             </Button>
                             <Button
-                                className={`h-8 w-8 p-0 border-[2px] border-[#6a4dfc] ${message.trim() ? 'bg-[#6A4DFC] hover:bg-[#6A4DFC]/90' : 'bg-white/20 cursor-not-allowed'} transition-colors duration-100 ease-in-out`}
+                                className={`h-8 w-8 p-0 border-[2px] border-[#6a4dfc] ${message.trim() && !isStreaming ? 'bg-[#6A4DFC] hover:bg-[#6A4DFC]/90' : 'bg-white/20 cursor-not-allowed'} transition-colors duration-100 ease-in-out`}
+                                disabled={!message.trim() || isStreaming}
                                 onClick={handleSend}
-                                disabled={!message.trim()}
                             >
                                 <ArrowUp className="h-4 w-4" />
                             </Button>

@@ -1,12 +1,14 @@
 'use client';
 
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ChatBox from '@/components/ChatBox';
 import ChatMessage from '@/components/ChatMessage';
 import ScrollToBottomButton from '@/components/ScrollToBottomButton';
 import { useSidebarStore } from '@/stores/useSidebarStore';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useGreeting } from '@/hooks/useGreeting';
-import { useCallback, useEffect, useRef, useState } from 'react';
+
+type ScrollBehavior = 'auto' | 'smooth';
 
 export type Message = {
     id: string;
@@ -21,9 +23,10 @@ const ChatSection = () => {
     const { fullGreeting } = useGreeting();
     const [messages, setMessages] = useState<Message[]>([]);
     const [showScrollButton, setShowScrollButton] = useState(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const messagesContainerRef = useRef<HTMLDivElement>(null);
-    const isScrollingRef = useRef(false);
+    const [isStreaming, setIsStreaming] = useState(false);
+    const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+    const isScrollingRef = useRef<boolean>(false);
 
     useEffect(() => {
         const savedMessages = localStorage.getItem('chatMessages');
@@ -57,18 +60,28 @@ const ChatSection = () => {
 
         isScrollingRef.current = true;
         messagesEndRef.current.scrollIntoView({ behavior });
-        setShowScrollButton(false);
 
-        setTimeout(() => {
+        // Reset the scrolling flag after a short delay
+        const timer = setTimeout(() => {
             isScrollingRef.current = false;
         }, 500);
+
+        return () => clearTimeout(timer);
     }, []);
 
+    // Auto-scroll effect when new messages arrive
     useEffect(() => {
         if (messages.length > 0) {
-            scrollToBottom('auto');
+            // Use requestAnimationFrame to ensure the DOM is updated before scrolling
+            requestAnimationFrame(() => {
+                scrollToBottom('auto');
+            });
         }
-    }, [messages.length, scrollToBottom]);
+        // We're intentionally not including scrollToBottom in the dependency array
+        // because it's already stable (has no dependencies that would cause it to change)
+        // and we don't want to recreate this effect when it changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [messages.length]);
 
     const handleScroll = useCallback(() => {
         if (!messagesContainerRef.current || isScrollingRef.current) return;
@@ -98,7 +111,7 @@ const ChatSection = () => {
         };
     }, [handleScroll]);
 
-    const handleSendMessage = (content: string) => {
+    const handleSendMessage = useCallback((content: string) => {
         if (!content.trim()) return;
 
         const userMessage: Message = {
@@ -109,17 +122,45 @@ const ChatSection = () => {
         };
 
         setMessages((prev) => [...prev, userMessage]);
+    }, []);
 
-        setTimeout(() => {
-            const aiMessage: Message = {
-                id: (Date.now() + 1).toString(),
+    const handleStreamingComplete = useCallback((content: string) => {
+        setMessages((prev) => {
+            const lastMessage = prev[prev.length - 1];
+
+            // If the last message is from the assistant, update it
+            if (lastMessage && !lastMessage.isUser) {
+                return [
+                    ...prev.slice(0, -1),
+                    { ...lastMessage, content },
+                ];
+            }
+
+            // Otherwise, add a new message
+            return [
+                ...prev,
+                {
+                    id: `ai-${Date.now()}`,
+                    content,
+                    isUser: false,
+                    timestamp: new Date(),
+                },
+            ];
+        });
+    }, []);
+
+    // Initial greeting effect
+    useEffect(() => {
+        if (messages.length === 0) {
+            const greetingMessage: Message = {
+                id: 'greeting',
                 content: "I'm your AI assistant. How can I help you today?",
                 isUser: false,
                 timestamp: new Date(),
             };
-            setMessages((prev) => [...prev, aiMessage]);
-        }, 500);
-    };
+            setMessages([greetingMessage]);
+        }
+    }, [messages.length]);
 
     return (
         <div
@@ -160,13 +201,18 @@ const ChatSection = () => {
 
                         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
                             <ScrollToBottomButton
-                                onClick={() => scrollToBottom()}
+                                onClick={() => scrollToBottom('smooth')}
                                 show={showScrollButton}
                             />
                         </div>
                     </div>
                 </div>
-                <ChatBox onSendMessage={handleSendMessage} />
+                <ChatBox
+                    onSendMessage={handleSendMessage}
+                    onStreamingComplete={handleStreamingComplete}
+                    isStreaming={isStreaming}
+                    setIsStreaming={setIsStreaming}
+                />
             </div>
         </div>
     );
