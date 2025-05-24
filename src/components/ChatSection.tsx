@@ -122,13 +122,13 @@ const ChatSection = () => {
     return (
         <div
             className={`
-        flex fixed items-center justify-center 
-        ${isOpen
+                flex fixed items-center justify-center 
+                ${isOpen
                     ? 'md:ml-56 md:mt-4 w-full h-full md:w-[calc(100vw-224px)] md:h-[calc(100vh-16px)] md:rounded-tl-xl md:border-l-[1px] md:border-t-[1px] md:border-[#6A4DFC]'
                     : 'ml-0 mt-0 w-full h-screen'}
-        ${theme === 'light' ? 'bg-white' : 'bg-white/5'}
-        transition-all duration-100 ease-in-out
-      `}
+                ${theme === 'light' ? 'bg-white' : 'bg-white/5'}
+                transition-all duration-100 ease-in-out
+            `}
         >
             <div
                 className={`flex flex-col items-center justify-between h-full w-full rounded-tl-xl relative ${theme === 'light' ? 'bg-[#6A4DFC]/10' : ''
@@ -136,7 +136,7 @@ const ChatSection = () => {
             >
                 <div
                     ref={messagesContainerRef}
-                    className="flex-1 w-[95vw] md:w-[532px] lg:w-[720px] overflow-y-auto py-4 px-2 scrollbar-hide relative border"
+                    className="flex-1 w-[95vw] md:w-[532px] lg:w-[720px] overflow-y-auto py-4 scrollbar-hide relative"
                 >
                     {messages.length === 0 ? (
                         <div className="h-full flex items-center justify-center">

@@ -56,7 +56,7 @@ const ChatBox = ({ onSendMessage }: ChatBoxProps) => {
                             onKeyDown={handleKeyDown}
                         />
                     </div>
-                    <div className={`flex justify-between items-center ${theme === 'light' ? 'bg-[#6A4DFC]/10' : 'bg-white/5'} px-2 py-1`}>
+                    <div className={`flex justify-between items-center ${theme === 'light' ? 'bg-[#6A4DFC]/10' : 'bg-white/5'} p-2`}>
                         <div className="flex rounded-lg">
                             <DropdownMenu>
                                 <DropdownMenuTrigger className={`px-2 py-2 text-xs h-full rounded-lg hover:bg-[#6A4DFC]/30 hover:ring-1 hover:ring-[#6A4DFC] transition-colors duration-100 ease-in-out ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
@@ -71,11 +71,11 @@ const ChatBox = ({ onSendMessage }: ChatBoxProps) => {
                         </div>
 
                         <div className="flex gap-2">
-                            <Button variant="ghost" className={`px-3 ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
-                                <Paperclip />
+                            <Button variant="ghost" className={`p-0 h-8 w-8 ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
+                                <Paperclip className="h-4 w-4" />
                             </Button>
                             <Button
-                                className={`h-8 w-8 p-0 rounded-full ${message.trim() ? 'bg-[#6A4DFC] hover:bg-[#6A4DFC]/90' : 'bg-gray-400 cursor-not-allowed'} transition-colors duration-100 ease-in-out`}
+                                className={`h-8 w-8 p-0 border-[2px] border-[#6a4dfc] ${message.trim() ? 'bg-[#6A4DFC] hover:bg-[#6A4DFC]/90' : 'bg-white/20 cursor-not-allowed'} transition-colors duration-100 ease-in-out`}
                                 onClick={handleSend}
                                 disabled={!message.trim()}
                             >
