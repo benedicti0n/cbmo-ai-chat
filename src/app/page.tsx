@@ -1,8 +1,5 @@
-import ChatSection from "@/components/ChatSection";
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-
-  return (
-    <ChatSection />
-  );
+  redirect('/chat');
 }
