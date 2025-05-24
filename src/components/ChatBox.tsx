@@ -1,7 +1,7 @@
 'use client';
 
 import { useThemeStore } from "@/stores/useThemeStore";
-import TextareaAutosize from 'react-textarea-autosize'; // Install: npm i react-textarea-autosize
+import TextareaAutosize from 'react-textarea-autosize';
 import { Button } from "./ui/button";
 import { ArrowUp, Paperclip } from "lucide-react";
 import {
@@ -10,19 +10,33 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
-import { useState } from "react";
+import { KeyboardEvent, useState } from "react";
 
+interface ChatBoxProps {
+    onSendMessage: (message: string) => void;
+}
 
-const ChatBox = () => {
+const ChatBox = ({ onSendMessage }: ChatBoxProps) => {
     const { theme } = useThemeStore();
-    const [modelName, setModelName] = useState('OpenAI');
+    const [modelName] = useState('OpenAI');
+    const [message, setMessage] = useState('');
 
     const handleSend = () => {
-        console.log('Send');
+        if (message.trim()) {
+            onSendMessage(message);
+            setMessage('');
+        }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
     };
 
     return (
-        <div className="w-[95vw] md:w-[532px] lg:w-[720px] absolute bottom-0">
+        <div className="w-[95vw] md:w-[532px] lg:w-[720px] relative bottom-0">
             <div
                 className={`w-full max-h-[400px] flex flex-col justify-end 
                     ${theme === 'light' ? 'bg-[#6A4DFC]/10' : 'bg-[#6A4DFC]/[10%]'} 
@@ -37,6 +51,9 @@ const ChatBox = () => {
                             className="w-full min-h-[50px] resize-none overflow-y-auto focus:outline-none bg-transparent border-0 shadow-none text-sm
                                 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-[#6A4DFC]/50 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent"
                             maxRows={10}
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            onKeyDown={handleKeyDown}
                         />
                     </div>
                     <div className={`flex justify-between items-center ${theme === 'light' ? 'bg-[#6A4DFC]/10' : 'bg-white/5'} px-2 py-1`}>
@@ -58,11 +75,11 @@ const ChatBox = () => {
                                 <Paperclip />
                             </Button>
                             <Button
-                                variant="default"
-                                className="px-3"
+                                className={`h-8 w-8 p-0 rounded-full ${message.trim() ? 'bg-[#6A4DFC] hover:bg-[#6A4DFC]/90' : 'bg-gray-400 cursor-not-allowed'} transition-colors duration-100 ease-in-out`}
                                 onClick={handleSend}
+                                disabled={!message.trim()}
                             >
-                                <ArrowUp />
+                                <ArrowUp className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>
