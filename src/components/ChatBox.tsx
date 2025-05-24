@@ -8,8 +8,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 import { useState } from "react";
@@ -24,7 +22,7 @@ const ChatBox = () => {
     };
 
     return (
-        <div className="w-[720px] absolute bottom-0">
+        <div className="w-[95vw] md:w-[532px] lg:w-[720px] absolute bottom-0">
             <div
                 className={`w-full max-h-[400px] flex flex-col justify-end 
                     ${theme === 'light' ? 'bg-[#6A4DFC]/10' : 'bg-[#6A4DFC]/[10%]'} 

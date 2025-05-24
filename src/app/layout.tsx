@@ -1,16 +1,10 @@
 import { type Metadata } from 'next'
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from '@clerk/nextjs'
+import { ClerkProvider } from '@clerk/nextjs'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
-import { ThemeToggle } from '@/components/ThemeToggle'
-import Sidebar from '@/components/Sidebar'
+import DesktopSidebar from '@/components/Sidebar/DesktopSidebar'
+import Header from '@/components/Header'
+import MobileSidebar from '@/components/Sidebar/MobileSidebar'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -37,21 +31,15 @@ export default function RootLayout({
       <html lang="en" className="h-full">
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased h-full bg-[#6A4DFC]/[20%]`}>
           <div className="flex h-full">
-            <Sidebar />
+            <div className="hidden md:block">
+              <DesktopSidebar />
+            </div>
+            <div className="md:hidden">
+              <MobileSidebar />
+            </div>
             <div className="flex-1 flex flex-col h-full overflow-hidden">
-              <header className="flex justify-end items-center px-2 py-2 gap-4 border-l-[1px] border-b-[1px] border-[#6A4DFC] bg-[#6A4DFC]/20 w-fit fixed right-0 top-0 z-50 mt-6 rounded-bl-xl">
-                <div className="flex items-center gap-4">
-                  <ThemeToggle />
-                  <SignedOut>
-                    <SignInButton />
-                    <SignUpButton />
-                  </SignedOut>
-                  <SignedIn>
-                    <UserButton />
-                  </SignedIn>
-                </div>
-              </header>
-              <main className="ml-64">
+              <Header />
+              <main>
                 {children}
               </main>
             </div>
