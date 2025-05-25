@@ -3,6 +3,15 @@ import { NextResponse } from 'next/server';
 
 export const runtime = 'edge';
 
+// Map frontend model names to Gemini model names
+const MODEL_MAP: Record<string, string> = {
+  'gemini-2.0-flash': 'gemini-2.0-flash-001',
+  'gemini-1.5-flash': 'gemini-1.5-flash-latest',
+};
+
+// Default model to use if none specified
+const DEFAULT_MODEL = 'gemini-1.5-flash-latest';
+
 // Helper function to convert the stream to a ReadableStream
 function streamToReadableStream(stream: AsyncGenerator<any>): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
@@ -34,7 +43,12 @@ function streamToReadableStream(stream: AsyncGenerator<any>): ReadableStream<Uin
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    const { messages, model: modelName } = await req.json();
+
+    // Get the model name, defaulting to the mapped value or the default model
+    const geminiModel = modelName && MODEL_MAP[modelName]
+      ? MODEL_MAP[modelName]
+      : DEFAULT_MODEL;
 
     // Type for the message object
     interface ChatMessage {
@@ -47,7 +61,9 @@ export async function POST(req: Request) {
     const prompt = chatMessages[chatMessages.length - 1].content;
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-001' });
+    const model = genAI.getGenerativeModel({ model: geminiModel });
+
+    console.log(`Using model: ${geminiModel}`);
 
     // Start a chat session with history
     const chat = model.startChat({

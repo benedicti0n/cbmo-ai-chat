@@ -40,7 +40,7 @@ const ChatMessage = React.memo(({ message }: ChatMessageProps) => {
     };
 
     return (
-        <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+        <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
                 className={`max-w-[80%] md:max-w-[80%] rounded-2xl p-2 relative group ${message.role === 'user'
                     ? `${theme === 'light'

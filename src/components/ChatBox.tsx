@@ -163,13 +163,6 @@ const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreami
                                 </Tooltip>
                                 <DropdownMenuContent className={`min-w-48 space-y-2 ${theme === 'light' ? 'bg-[#6A4DFC]/10 text-[#6A4DFC]' : 'bg-black/60 text-white'} backdrop-blur-md border border-[#6A4DFC] rounded-lg p-2`} align="start" sideOffset={8}>
                                     <DropdownMenuItem
-                                        onClick={() => setSelectedModel('gemini-2.5-flash-preview')}
-                                        className={`hover:bg-[#6A4DFC]/20 focus:bg-[#6A4DFC]/30 rounded-md px-2 py-1.5 text-sm cursor-pointer ${selectedModel === 'gemini-2.5-flash-preview' ? 'bg-[#6A4DFC]/30' : ''}`}
-                                    >
-                                        <img src="/gemini-color.svg" alt="Gemini" className="w-4 h-4 mr-2" />
-                                        Gemini 2.5 Flash (Preview)
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
                                         onClick={() => setSelectedModel('gemini-2.0-flash')}
                                         className={`hover:bg-[#6A4DFC]/20 focus:bg-[#6A4DFC]/30 rounded-md px-2 py-1.5 text-sm cursor-pointer ${selectedModel === 'gemini-2.0-flash' ? 'bg-[#6A4DFC]/30' : ''}`}
                                     >
@@ -182,20 +175,6 @@ const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreami
                                     >
                                         <img src="/gemini-color.svg" alt="Gemini" className="w-4 h-4 mr-2" />
                                         Gemini 1.5 Flash
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onClick={() => setSelectedModel('gemini-1.5-pro')}
-                                        className={`hover:bg-[#6A4DFC]/20 focus:bg-[#6A4DFC]/30 rounded-md px-2 py-1.5 text-sm cursor-pointer ${selectedModel === 'gemini-1.5-pro' ? 'bg-[#6A4DFC]/30' : ''}`}
-                                    >
-                                        <img src="/gemini-color.svg" alt="Gemini" className="w-4 h-4 mr-2" />
-                                        Gemini 1.5 Pro
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onClick={() => setSelectedModel('gemini-1.0-pro')}
-                                        className={`hover:bg-[#6A4DFC]/20 focus:bg-[#6A4DFC]/30 rounded-md px-2 py-1.5 text-sm cursor-pointer ${selectedModel === 'gemini-1.0-pro' ? 'bg-[#6A4DFC]/30' : ''}`}
-                                    >
-                                        <img src="/gemini-color.svg" alt="Gemini" className="w-4 h-4 mr-2" />
-                                        Gemini 1.0 Pro (Legacy)
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
