@@ -12,6 +12,7 @@ import useChatHistoryStore from '@/stores/useChatHistoryStore';
 import axios from 'axios';
 import { useUser } from '@clerk/nextjs';
 import { AnimatedShinyText } from './magicui/animated-shiny-text';
+import { useRouter } from 'next/navigation';
 
 type ScrollBehavior = 'auto' | 'smooth';
 
@@ -35,6 +36,8 @@ const ChatSection = () => {
 
     const { user } = useUser();
     const userId = user?.id as string;
+
+    const router = useRouter();
 
     const { conversationId }: { conversationId: string } = useParams()
     const { conversations } = useChatHistoryStore()
@@ -116,6 +119,11 @@ const ChatSection = () => {
     const handleSendMessage = useCallback(async (content: string) => {
         setIsLoading(true);
         if (!content.trim()) return;
+        if (!user) {
+            setIsLoading(false);
+            router.push('/signup');
+            return;
+        }
 
         const userMessage = {
             content,
@@ -128,12 +136,14 @@ const ChatSection = () => {
         setMessages((prev) => [...prev, userMessage]);
 
         try {
-            await axios.post('/api/v1/chat/addChat', {
-                conversationId,
-                title,
-                clerkId: userId,
-                userMessage,
-            })
+            if (user) {
+                await axios.post('/api/v1/chat/addChat', {
+                    conversationId,
+                    title,
+                    clerkId: userId,
+                    userMessage,
+                });
+            }
             setIsLoading(false);
         } catch (error) {
             console.error('Error adding user message:', error);
@@ -205,7 +215,7 @@ const ChatSection = () => {
                                         />
                                     ))}
                                     {isLoading && (
-                                        <div className="h-2 w-2 relative">
+                                        <div className="h-2 w-2 mt-2 relative">
                                             <AnimatedShinyText className="text-center text-sm font-semibold text-[#6A4DFC]">Thinking...</AnimatedShinyText>
                                         </div>
                                     )}
