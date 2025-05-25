@@ -1,40 +1,39 @@
 'use client';
 
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import DesktopSidebar from './DesktopSidebar'
 import MobileSidebar from './MobileSidebar'
-import { useUser } from '@clerk/nextjs'
-import axios from 'axios'
-import useChatHistoryStore from '@/stores/useChatHistoryStore'
+import { useUser } from '@clerk/nextjs';
+import useChatHistoryStore from '@/stores/useChatHistoryStore';
+import { fetchChatHistory } from '@/utils/chatUtils';
 
 const Sidebar = () => {
     const { user } = useUser();
     const userId = user?.id;
-    const { conversations, setAllConversations } = useChatHistoryStore();
+    const { setAllConversations } = useChatHistoryStore();
 
-    useEffect(() => {
-        const fetchChatHistory = async () => {
-            try {
-                const response = await axios.get(`/api/chat-history?userId=${userId}`);
-                const data = response.data;
-                setAllConversations(data);
-            } catch (error) {
-                console.error('Error fetching chat history:', error);
-            }
-        };
-
-        if (userId) {
-            fetchChatHistory();
+    const loadChatHistory = useCallback(async () => {
+        if (!userId) return;
+        try {
+            const data = await fetchChatHistory(userId);
+            setAllConversations(data);
+        } catch (error) {
+            console.error('Failed to load chat history:', error);
         }
-    }, [userId]);
+    }, [userId, setAllConversations]);
+    useEffect(() => {
+        if (userId) {
+            loadChatHistory();
+        }
+    }, [userId, loadChatHistory]);
 
     return (
         <>
             <div className="hidden md:block">
-                <DesktopSidebar conversations={conversations} />
+                <DesktopSidebar />
             </div>
             <div className="md:hidden">
-                <MobileSidebar conversations={conversations} />
+                <MobileSidebar />
             </div>
         </>
     )

@@ -35,7 +35,14 @@ const ChatSection = () => {
     const userId = user?.id as string;
 
     const { conversationId }: { conversationId: string } = useParams()
-    const streamingContentRef = useRef('');
+    const { conversations } = useChatHistoryStore()
+    const conversation = conversations.find((conv) => conv.id === conversationId);
+
+    useEffect(() => {
+        if (conversation) {
+            setMessages(conversation.messages);
+        }
+    }, [conversation]);
 
 
     useEffect(() => {

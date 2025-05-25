@@ -1,36 +1,67 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Plus, Search, PanelLeft } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Plus, Search, PanelLeft, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { Input } from '../ui/input';
 import { useSidebarStore } from '@/stores/useSidebarStore';
-import useChatHistoryStore, { Conversation } from '@/stores/useChatHistoryStore';
+import useChatHistoryStore from '@/stores/useChatHistoryStore';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
+import axios from 'axios';
+import { deleteChat, fetchChatHistory } from '@/utils/chatUtils';
 
-interface DesktopSidebarProps {
-  conversations: Conversation[]
-};
-
-export default function DesktopSidebar({ conversations }: DesktopSidebarProps) {
+export default function DesktopSidebar() {
   const [searchQuery, setSearchQuery] = useState('');
-  const { createConversation } = useChatHistoryStore();
+  const { conversations, createConversation, setAllConversations, removeConversation } = useChatHistoryStore();
   const { isOpen, toggleSidebar, setOpen } = useSidebarStore();
   const { theme } = useThemeStore();
   const router = useRouter();
+  const { user } = useUser();
+  const userId = user?.id;
 
-  const handleNewChat = () => {
-    const newConversationId = createConversation('New Chat');
-    router.push(`/chat/${newConversationId}`);
+  // Memoize filtered conversations to prevent unnecessary recalculations
+  const filteredConversations = useMemo(() => {
+    return conversations
+      .filter(conv => conv.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  }, [conversations, searchQuery]);
+
+  const handleDeleteChat = async (e: React.MouseEvent, conversationId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    const success = await deleteChat(conversationId);
+    if (success && userId) {
+      // Remove the conversation from the UI immediately
+      removeConversation(conversationId);
+      
+      // Refresh the full list from the server
+      try {
+        const updatedConversations = await fetchChatHistory(userId);
+        setAllConversations(updatedConversations);
+      } catch (error) {
+        console.error('Error refreshing conversations:', error);
+      }
+    }
   };
 
-  const filteredConversations = conversations.filter(conv =>
-    conv.title.toLowerCase().includes(searchQuery.toLowerCase())
-  ).sort((a, b) =>
-    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-  );
+  const handleNewChat = async () => {
+    try {
+      const newConversationId = createConversation('New Chat', userId!);
+      // Refresh the conversations list from the server
+      const response = await axios.get(`/api/v1/chat/history?userId=${userId}`);
+      const data = await response.data;
+      setAllConversations(data);
+      router.push(`/chat/${newConversationId}`);
+    } catch (error) {
+      console.error('Error creating new chat:', error);
+    }
+  };
+
+
 
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
@@ -146,9 +177,14 @@ export default function DesktopSidebar({ conversations }: DesktopSidebarProps) {
                   <Link
                     key={chat.id}
                     href={`/chat/${chat.id}`}
-                    className={`block p-2 rounded-md ${theme === 'light' ? 'text-[#6A4DFC] hover:bg-white' : 'text-white hover:bg-[#6A4DFC]/[30%]'} transition-colors truncate`}
+                    className={`block p-2 rounded-md ${theme === 'light' ? 'text-[#6A4DFC] hover:bg-white' : 'text-white hover:bg-[#6A4DFC]/[30%]'} transition-colors truncate flex items-center justify-between`}
                   >
                     <div className="font-medium text-xs">{chat.title}</div>
+                    <TrashIcon 
+                      className="text-red-400 cursor-pointer hover:text-red-500 transition-colors duration-100 ease-in-out" 
+                      style={{ width: '12px', height: '12px' }} 
+                      onClick={(e) => handleDeleteChat(e, chat.id)}
+                    />
                   </Link>
                 ))
               ) : (

@@ -1,37 +1,54 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Search, PanelLeft } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useSidebarStore } from '@/stores/useSidebarStore';
-import useChatHistoryStore, { Conversation } from '@/stores/useChatHistoryStore';
+import useChatHistoryStore from '@/stores/useChatHistoryStore';
+import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
+import axios from 'axios';
 
-interface MobileSidebarProps {
-  conversations: Conversation[];
-}
-
-export default function MobileSidebar({ conversations }: MobileSidebarProps) {
+export default function MobileSidebar() {
   const [searchQuery, setSearchQuery] = useState('');
-  const { createConversation } = useChatHistoryStore();
+  const { conversations, createConversation, setAllConversations } = useChatHistoryStore();
   const { isOpen, toggleSidebar, setOpen } = useSidebarStore();
   const { theme } = useThemeStore();
   const router = useRouter();
+  const { user } = useUser();
+  const userId = user?.id;
 
-  const handleNewChat = () => {
-    const newConversationId = createConversation('New Chat');
-    setOpen(false);
-    router.push(`/chat/${newConversationId}`);
+  // Memoize filtered conversations to prevent unnecessary recalculations
+  const filteredConversations = useMemo(() => {
+    return conversations
+      .filter((conv) =>
+        conv.title.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      );
+  }, [conversations, searchQuery]);
+
+  const handleNewChat = async () => {
+    try {
+      if (!userId) return;
+      const newConversationId = createConversation('New Chat', userId);
+      // Refresh the conversations list from the server
+      const response = await axios.get(`/api/v1/chat/history?userId=${userId}`);
+      const data = response.data;
+      setAllConversations(data);
+      setOpen(false);
+      router.push(`/chat/${newConversationId}`);
+    } catch (error) {
+      console.error('Error creating new chat:', error);
+    }
   };
 
-  const filteredConversations = conversations.filter((conv) =>
-    conv.title.toLowerCase().includes(searchQuery.toLowerCase())
-  ).sort((a, b) =>
-    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-  );
+
 
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
