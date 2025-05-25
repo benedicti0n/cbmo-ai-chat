@@ -10,8 +10,8 @@ type Message = {
 
 export async function POST(request: NextRequest) {
     try {
-        const { conversationId, title, clerkId, userMessage, aiMessage, content, role, createdAt } = await request.json();
-        console.log('Received request:', { conversationId, title, clerkId, userMessage, aiMessage, content, role, createdAt });
+        const { conversationId, title, clerkId, userMessage, aiMessage, content, role } = await request.json();
+        console.log('Received request:', { conversationId, title, clerkId, userMessage, aiMessage, content, role });
 
         if (!conversationId) {
             return NextResponse.json(
@@ -27,73 +27,67 @@ export async function POST(request: NextRequest) {
 
         console.log('Existing conversation:', existingConversation ? 'Found' : 'Not found');
 
-        // // Prepare the new message
-        // const newMessage = userMessage || {
-        //     id,
-        //     content,
-        //     role,
-        //     createdAt: new Date().toISOString()
-        // };
+        // Prepare the new message
+        const newUserMessage = {
+            id: crypto.randomUUID(),
+            content: userMessage?.content,
+            role: userMessage?.role,
+            createdAt: new Date().toISOString()
+        };
+        const newAiMessage = {
+            id: crypto.randomUUID(),
+            content: aiMessage?.content,
+            role: aiMessage?.role,
+            createdAt: new Date().toISOString()
+        };
 
-        // if (existingConversation) {
-        //     // Update existing conversation
-        //     const currentMessages = Array.isArray(existingConversation.messages)
-        //         ? existingConversation.messages as Message[]
-        //         : [];
+        if (existingConversation) {
+            // Update existing conversation
+            const currentMessages = Array.isArray(existingConversation.messages)
+                ? existingConversation.messages as Message[]
+                : [];
 
-        //     const updatedMessages = [...currentMessages, newMessage];
+            const updatedMessages = [...currentMessages, newAiMessage];
 
-        //     await prisma.$executeRaw`
-        //         UPDATE "Conversation" 
-        //         SET 
-        //             messages = ${JSON.stringify(updatedMessages)}::jsonb,
-        //             "updatedAt" = NOW()
-        //         WHERE id = ${conversationId}::uuid;
-        //     `;
+            await prisma.conversation.update({
+                where: { id: conversationId },
+                data: {
+                    messages: updatedMessages,
+                    updatedAt: new Date()
+                }
+            });
 
-        //     console.log('Updated conversation with new message');
-        //     return NextResponse.json({
-        //         success: true,
-        //         conversation: {
-        //             ...existingConversation,
-        //             messages: updatedMessages,
-        //             updatedAt: new Date()
-        //         }
-        //     });
-        // } else {
-        //     // Create new conversation
-        //     if (!title || !clerkId) {
-        //         return NextResponse.json(
-        //             { error: 'title and userId are required for new conversations' },
-        //             { status: 400 }
-        //         );
-        //     }
+            console.log('Updated conversation with new message');
+            return NextResponse.json({
+                success: true,
+                message: 'Message added to existing conversation',
+            });
+        } else {
+            // Create new conversation
+            if (!title || !clerkId) {
+                return NextResponse.json(
+                    { error: 'title and userId are required for new conversations' },
+                    { status: 400 }
+                );
+            }
 
-        //     await prisma.$executeRaw`
-        //         INSERT INTO "Conversation" (id, title, "clerkId", messages, "createdAt", "updatedAt")
-        //         VALUES (
-        //             ${conversationId}::uuid,
-        //             ${title},
-        //             ${clerkId},
-        //             ${JSON.stringify([newMessage])}::jsonb,
-        //             NOW(),
-        //             NOW()
-        //         );
-        //     `;
+            await prisma.conversation.create({
+                data: {
+                    id: conversationId,
+                    title,
+                    clerkId,
+                    messages: [newUserMessage],
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+            });
 
-        //     console.log('Created new conversation');
-        //     return NextResponse.json({
-        //         success: true,
-        //         conversation: {
-        //             id: conversationId,
-        //             title,
-        //             clerkId,
-        //             messages: [newMessage],
-        //             createdAt: new Date(),
-        //             updatedAt: new Date()
-        //         }
-        //     });
-        // }
+            console.log('Created new conversation');
+            return NextResponse.json({
+                success: true,
+                message: 'Conversation created successfully',
+            });
+        }
 
     } catch (error) {
         console.error('Detailed error:', error);

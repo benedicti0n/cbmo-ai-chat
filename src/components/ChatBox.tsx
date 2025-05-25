@@ -11,15 +11,18 @@ import {
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 import { KeyboardEvent, useState } from "react";
+import axios from "axios";
 
 interface ChatBoxProps {
     onSendMessage: (content: string) => void;
-    onStreamingComplete: () => void;
+    onStreamingComplete: (content: string) => void;
     isStreaming: boolean;
     setIsStreaming: (val: boolean) => void;
+    conversationId: string;
+    clerkId: string;
 }
 
-const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreaming }: ChatBoxProps) => {
+const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreaming, conversationId, clerkId }: ChatBoxProps) => {
     const { theme } = useThemeStore();
     const [modelName] = useState('Gemini');
     const [message, setMessage] = useState('');
@@ -102,6 +105,19 @@ const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreami
             onStreamingComplete?.('Sorry, I encountered an error. Please try again.');
         } finally {
             setIsStreaming?.(false);
+            try {
+                const aiMessage = {
+                    content: fullResponse,
+                    role: 'ai',
+                };
+                await axios.post('/api/v1/chat/addChat', { aiMessage, conversationId, clerkId }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+            } catch (err) {
+                console.error('Failed to cancel reader:', err);
+            }
         }
     };
 

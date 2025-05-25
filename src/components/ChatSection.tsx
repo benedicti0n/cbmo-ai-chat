@@ -125,7 +125,6 @@ const ChatSection = () => {
         if (!content.trim()) return;
 
         const userMessage = {
-            id: crypto.randomUUID(),
             content,
             role: 'user' as const,
         };
@@ -230,6 +229,8 @@ const ChatSection = () => {
                     onStreamingComplete={handleStreamingComplete}
                     isStreaming={isStreaming}
                     setIsStreaming={setIsStreaming}
+                    conversationId={conversationId}
+                    clerkId={userId}
                 />
             </div>
         </div>
