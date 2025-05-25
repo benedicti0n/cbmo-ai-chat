@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Search, PanelLeft } from 'lucide-react';
+import { Plus, Search, PanelLeft, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useSidebarStore } from '@/stores/useSidebarStore';
 import useChatHistoryStore, { Conversation } from '@/stores/useChatHistoryStore';
 import { CustomModal } from '../ui/CustomModal';
-import { deleteChat, fetchChatHistory } from '@/utils/chatUtils';
+import { deleteAllChats, deleteChat, fetchChatHistory } from '@/utils/chatUtils';
 import { toast } from 'sonner';
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
@@ -21,6 +21,7 @@ export default function MobileSidebar() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const { conversations, createConversation, setAllConversations, removeConversation } = useChatHistoryStore();
   const { isOpen, toggleSidebar, setOpen } = useSidebarStore();
+  const [isLoading, setIsLoading] = useState(false);
   const { theme } = useThemeStore();
   const router = useRouter();
   const { user } = useUser();
@@ -42,6 +43,7 @@ export default function MobileSidebar() {
   const handleNewChat = async () => {
     try {
       if (!userId) return;
+      setIsLoading(true);
       const newConversationId = createConversation('New Chat', userId);
       // Refresh the conversations list from the server
       const response = await fetch(`/api/v1/chat/history?userId=${userId}`);
@@ -51,6 +53,8 @@ export default function MobileSidebar() {
       router.push(`/chat/${newConversationId}`);
     } catch (error) {
       console.error('Error creating new chat:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -113,7 +117,7 @@ export default function MobileSidebar() {
   return (
     <>
       {/* Sidebar Toggle Button */}
-      <div className={`fixed top-4 left-4 z-[60] flex items-center justify-center gap-2 backdrop-blur-md ${isOpen ? 'p-0' : 'p-2 rounded-xl border border-[#6A4DFC]'} transition-all duration-100 ease-in-out  ${theme === 'light' ? 'bg-[#E1DBFE]' : 'bg-[#6A4DFC]/20'}`}>
+      <div className={`fixed top-4 left-4 z-[60] flex items-center justify-center gap-2 backdrop-blur-md ${isOpen ? 'p-0' : 'p-2 rounded-xl border border-[#6A4DFC]'} ${theme === 'light' ? 'bg-[#E1DBFE]' : 'bg-[#6A4DFC]/20'}`}>
         <Button
           onClick={toggleSidebar}
           variant="ghost"
@@ -125,20 +129,13 @@ export default function MobileSidebar() {
         {!isOpen && (
           <div className={`flex gap-2`}>
             <Button
-              onClick={openSearch}
-              variant="ghost"
-              className={`p-2 rounded-md hover:bg-[#6A4DFC]/30 dark:hover:bg-[#6A4DFC]/30 transition-colors `}
-              aria-label="Toggle sidebar"
-            >
-              <Search className={`${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`} style={{ width: '16px', height: '16px' }} />
-            </Button>
-            <Button
               onClick={handleNewChat}
               variant="ghost"
               className={`p-2 rounded-md hover:bg-[#6A4DFC]/30 dark:hover:bg-[#6A4DFC]/30 transition-colors`}
               aria-label="Toggle theme"
+              disabled={isLoading}
             >
-              <Plus className={`${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`} style={{ width: '16px', height: '16px' }} />
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className={`${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`} style={{ width: '16px', height: '16px' }} />}
             </Button>
           </div>
         )}
@@ -172,8 +169,8 @@ export default function MobileSidebar() {
               </div>
             </div>
 
-            <Button variant="default" className="w-full flex items-center gap-2">
-              <Plus className="w-4 h-4" />
+            <Button variant="default" className="w-full flex items-center gap-2" disabled={isLoading}>
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="w-4 h-4" />}
               <span className="text-xs">New Chat</span>
             </Button>
 
@@ -219,6 +216,16 @@ export default function MobileSidebar() {
                 )}
               </div>
             </div>
+            {userId && (
+              <Button
+                variant="ghost"
+                onClick={() => deleteAllChats(userId)}
+                className={`flex items-center justify-center gap-2 text-sm ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}
+              >
+                <TrashIcon className={`text-[#6A4DFC] cursor-pointer transition-colors duration-100 ease-in-out ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`} style={{ width: '16px', height: '16px' }} />
+                Delete All
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -50,6 +50,7 @@ const ChatMessage = React.memo(({ message }: ChatMessageProps) => {
                         ? 'bg-white text-[#3F29C7] border-[1px] border-white/20'
                         : 'bg-white/10 text-[#3F29C7] border-[1px] border-white/20'} text-foreground rounded-bl-none`
                     }`}
+
             >
                 {/* Message Copy Button */}
                 <Button

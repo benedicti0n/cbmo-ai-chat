@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from './button';
+import { Loader2 } from 'lucide-react';
 
 interface CustomModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export function CustomModal({
   theme = 'light',
 }: CustomModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Close modal when clicking outside
   useEffect(() => {
@@ -53,7 +55,7 @@ export function CustomModal({
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
       <div
         ref={modalRef}
-        className={`relative w-full max-w-md p-6 rounded-lg shadow-xl transform transition-all  border border-[#6A4DFC] ${theme === 'light' ? 'bg-[#E1DBFE]' : 'bg-[#231E40]/30'}`}
+        className={`relative w-full max-w-md p-6 rounded-lg shadow-xl transform transition-all border border-[#6A4DFC] ${theme === 'light' ? 'bg-[#E1DBFE]' : 'bg-[#231E40]'}`}
       >
         <h3 className="text-lg font-semibold mb-2">{title}</h3>
         <p className="mb-6 text-sm">{description}</p>
@@ -67,12 +69,14 @@ export function CustomModal({
           </Button>
           <Button
             variant="ghost"
-            onClick={() => {
-              onConfirm();
+            onClick={async () => {
+              setIsLoading(true);
+              await onConfirm();
               onClose();
+              setIsLoading(false);
             }}
           >
-            {confirmText}
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : confirmText}
           </Button>
         </div>
       </div>

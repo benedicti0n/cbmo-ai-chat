@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Search, PanelLeft } from 'lucide-react';
+import { Plus, Search, PanelLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { useThemeStore } from '@/stores/useThemeStore';
@@ -11,7 +11,7 @@ import useChatHistoryStore from '@/stores/useChatHistoryStore';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { toast } from 'sonner';
-import { deleteChat, fetchChatHistory } from '@/utils/chatUtils';
+import { deleteAllChats, deleteChat, fetchChatHistory } from '@/utils/chatUtils';
 import { CustomModal } from '../ui/CustomModal';
 import { TrashIcon } from 'lucide-react';
 
@@ -20,8 +20,10 @@ export default function DesktopSidebar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { conversations, createConversation, setAllConversations, removeConversation } = useChatHistoryStore();
-  const { isOpen, toggleSidebar, setOpen } = useSidebarStore();
+  const { isOpen, toggleSidebar, setOpen } = useSidebarStore()
   const { theme } = useThemeStore();
   const router = useRouter();
   const { user } = useUser();
@@ -73,6 +75,7 @@ export default function DesktopSidebar() {
 
   const handleNewChat = async () => {
     if (!userId) return;
+    setIsLoading(true);
     try {
       const newConversationId = createConversation('New Chat', userId);
       // Refresh the conversations list from the server
@@ -82,6 +85,8 @@ export default function DesktopSidebar() {
     } catch (error) {
       console.error('Error creating new chat:', error);
       toast.error('Failed to create new chat');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -100,13 +105,6 @@ export default function DesktopSidebar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, setOpen]);
 
-  const openSearch = () => {
-    setSearchQuery('');
-    if (window.innerWidth <= 768) {
-      setOpen(false);
-    }
-  };
-
   return (
     <>
       {/* Sidebar Toggle Button */}
@@ -122,20 +120,13 @@ export default function DesktopSidebar() {
         {!isOpen && (
           <div className={`flex gap-2`}>
             <Button
-              onClick={openSearch}
-              variant="ghost"
-              className={`p-2 rounded-md hover:bg-[#6A4DFC]/30 dark:hover:bg-[#6A4DFC]/30 transition-colors `}
-              aria-label="Toggle sidebar"
-            >
-              <Search className={`${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`} style={{ width: '16px', height: '16px' }} />
-            </Button>
-            <Button
               onClick={handleNewChat}
               variant="ghost"
+              disabled={isLoading}
               className={`p-2 rounded-md hover:bg-[#6A4DFC]/30 dark:hover:bg-[#6A4DFC]/30 transition-colors`}
               aria-label="Toggle theme"
             >
-              <Plus className={`${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`} style={{ width: '16px', height: '16px' }} />
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className={`${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`} style={{ width: '16px', height: '16px' }} />}
             </Button>
           </div>
         )}
@@ -171,8 +162,9 @@ export default function DesktopSidebar() {
             className="w-full flex items-center justify-center gap-2"
             variant="default"
             onClick={handleNewChat}
+            disabled={isLoading}
           >
-            <Plus className="h-4 w-4" />
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             New Chat
           </Button>
 
@@ -192,32 +184,44 @@ export default function DesktopSidebar() {
 
           {/* Chat History */}
           <div className="mt-4 flex-1 overflow-y-auto">
-            <h3 className={`text-xs font-bold ${theme === 'light' ? 'text-[#3F29C7]' : 'text-[#6A4DFC]'} uppercase tracking-wider mb-2`}>
-              Recent Chats
-            </h3>
-            <div className="space-y-1">
-              {filteredConversations.length > 0 ? (
-                filteredConversations.map((chat) => (
-                  <Link
-                    key={chat.id}
-                    href={`/chat/${chat.id}`}
-                    className={`block p-2 rounded-md ${theme === 'light' ? 'text-[#6A4DFC] hover:bg-white' : 'text-white hover:bg-[#6A4DFC]/[30%]'} transition-colors truncate flex items-center justify-between`}
-                  >
-                    <div className="font-medium text-xs">{chat.title}</div>
-                    <TrashIcon
-                      onClick={(e) => handleDeleteClick(e, chat.id)}
-                      className="text-red-400 cursor-pointer hover:text-red-500 transition-colors duration-100 ease-in-out"
-                      style={{ width: '12px', height: '12px' }}
-                    />
-                  </Link>
-                ))
-              ) : (
-                <p className={`p-2 text-xs ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
-                  No chats found
-                </p>
-              )}
+            <div>
+              <h3 className={`flex items-center justify-between text-xs font-bold ${theme === 'light' ? 'text-[#3F29C7]' : 'text-[#6A4DFC]'} uppercase tracking-wider mb-2`}>
+                Recent Chats
+              </h3>
+              <div className="space-y-1">
+                {filteredConversations.length > 0 ? (
+                  filteredConversations.map((chat) => (
+                    <Link
+                      key={chat.id}
+                      href={`/chat/${chat.id}`}
+                      className={`block p-2 rounded-md ${theme === 'light' ? 'text-[#6A4DFC] hover:bg-white' : 'text-white hover:bg-[#6A4DFC]/[30%]'} transition-colors truncate flex items-center justify-between`}
+                    >
+                      <div className="font-medium text-xs">{chat.title}</div>
+                      <TrashIcon
+                        onClick={(e) => handleDeleteClick(e, chat.id)}
+                        className="text-red-400 cursor-pointer hover:text-red-500 transition-colors duration-100 ease-in-out"
+                        style={{ width: '12px', height: '12px' }}
+                      />
+                    </Link>
+                  ))
+                ) : (
+                  <p className={`p-2 text-xs ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
+                    No chats found
+                  </p>
+                )}
+              </div>
             </div>
           </div>
+          {userId && (
+            <Button
+              variant="ghost"
+              onClick={() => setIsDeleteAllModalOpen(true)}
+              className={`flex items-center justify-center gap-2 text-sm ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}
+            >
+              <TrashIcon className={`text-[#6A4DFC] cursor-pointer transition-colors duration-100 ease-in-out ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`} style={{ width: '16px', height: '16px' }} />
+              Delete All
+            </Button>
+          )}
         </div>
       </div>
 
@@ -231,6 +235,20 @@ export default function DesktopSidebar() {
         onConfirm={handleDeleteChat}
         title="Delete Chat"
         description="Are you sure you want to delete this chat? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        theme={theme}
+      />
+
+      <CustomModal
+        isOpen={isDeleteAllModalOpen}
+        onClose={() => {
+          setIsDeleteAllModalOpen(false);
+          setChatToDelete(null);
+        }}
+        onConfirm={() => deleteAllChats(userId!)}
+        title="Delete All Chats"
+        description="Are you sure you want to delete all chats? This action cannot be undone."
         confirmText="Delete"
         cancelText="Cancel"
         theme={theme}

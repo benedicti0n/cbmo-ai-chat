@@ -3,7 +3,7 @@
 import { useThemeStore } from "@/stores/useThemeStore";
 import TextareaAutosize from 'react-textarea-autosize';
 import { Button } from "./ui/button";
-import { ArrowUp, Paperclip } from "lucide-react";
+import { ArrowUp, Loader2, Paperclip } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -18,11 +18,12 @@ interface ChatBoxProps {
     onStreamingComplete: (content: string) => void;
     isStreaming: boolean;
     setIsStreaming: (val: boolean) => void;
+    isLoading: boolean;
     conversationId: string;
     clerkId: string;
 }
 
-const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreaming, conversationId, clerkId }: ChatBoxProps) => {
+const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreaming, isLoading, conversationId, clerkId }: ChatBoxProps) => {
     const { theme } = useThemeStore();
     const [modelName] = useState('Gemini');
     const [message, setMessage] = useState('');
@@ -169,10 +170,14 @@ const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreami
                             </Button>
                             <Button
                                 className={`h-8 w-8 p-0 border-[2px] border-[#6a4dfc] ${message.trim() && !isStreaming ? 'bg-[#6A4DFC] hover:bg-[#6A4DFC]/90' : 'bg-white/20 cursor-not-allowed'} transition-colors duration-100 ease-in-out`}
-                                disabled={!message.trim() || isStreaming}
+                                disabled={!message.trim() || isStreaming || isLoading}
                                 onClick={handleSend}
                             >
-                                <ArrowUp className="h-4 w-4" />
+                                {isLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <ArrowUp className="h-4 w-4" />
+                                )}
                             </Button>
                         </div>
                     </div>

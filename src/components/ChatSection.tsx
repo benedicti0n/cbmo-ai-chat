@@ -11,6 +11,8 @@ import { useParams } from 'next/navigation';
 import useChatHistoryStore from '@/stores/useChatHistoryStore';
 import axios from 'axios';
 import { useUser } from '@clerk/nextjs';
+import { Loader2 } from 'lucide-react';
+import { AnimatedShinyText } from './magicui/animated-shiny-text';
 
 type ScrollBehavior = 'auto' | 'smooth';
 
@@ -30,6 +32,7 @@ const ChatSection = () => {
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
     const messagesContainerRef = useRef<HTMLDivElement | null>(null);
     const isScrollingRef = useRef<boolean>(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const { user } = useUser();
     const userId = user?.id as string;
@@ -43,20 +46,6 @@ const ChatSection = () => {
             setMessages(conversation.messages);
         }
     }, [conversation]);
-
-
-    useEffect(() => {
-        // const savedMessages = localStorage.getItem('chatMessages');
-        // if (savedMessages) {
-        //     const parsedMessages = JSON.parse(savedMessages).map(
-        //         (msg: Omit<Message, 'timestamp'> & { timestamp: string }) => ({
-        //             ...msg,
-        //             timestamp: new Date(msg.timestamp),
-        //         })
-        //     );
-        //     setMessages(parsedMessages);
-        // }
-    }, []);
 
     useEffect(() => {
         if (messages.length > 0) {
@@ -129,6 +118,7 @@ const ChatSection = () => {
     }, [handleScroll]);
 
     const handleSendMessage = useCallback(async (content: string) => {
+        setIsLoading(true);
         if (!content.trim()) return;
 
         const userMessage = {
@@ -146,10 +136,10 @@ const ChatSection = () => {
                 title,
                 clerkId: userId,
                 userMessage,
-            });
+            })
+            setIsLoading(false);
         } catch (error) {
             console.error('Error adding user message:', error);
-            // Optionally, you might want to remove the message from the UI if the API call fails
             // setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
         }
     }, [conversationId, userId]);
@@ -186,12 +176,10 @@ const ChatSection = () => {
                     ? 'md:ml-56 md:mt-4 w-full h-screen md:w-[calc(100vw-224px)] md:h-[calc(100vh-16px)] md:rounded-tl-xl md:border-l-[1px] md:border-t-[1px] md:border-[#6A4DFC]'
                     : 'ml-0 mt-0 w-full h-screen'}
                 ${theme === 'light' ? 'bg-white' : 'bg-white/5'}
-                transition-all duration-100 ease-in-out
             `}
         >
             <div
-                className={`flex flex-col items-center justify-between h-full w-full rounded-tl-xl relative ${theme === 'light' ? 'bg-[#6A4DFC]/10' : ''
-                    }`}
+                className={`flex flex-col items-center justify-between h-full w-full rounded-tl-xl relative ${theme === 'light' ? 'bg-[#6A4DFC]/10' : ''}`}
             >
                 <div className="flex-1 flex justify-center overflow-hidden w-[95vw] md:w-[532px] lg:w-[720px] h-full">
                     <div className="relative w-full h-full flex items-end justify-center">
@@ -218,6 +206,11 @@ const ChatSection = () => {
                                             }}
                                         />
                                     ))}
+                                    {isLoading && (
+                                        <div className="h-2 w-2 relative">
+                                            <AnimatedShinyText className="text-center text-sm font-semibold text-[#6A4DFC]">Thinking...</AnimatedShinyText>
+                                        </div>
+                                    )}
                                     <div ref={messagesEndRef} />
                                 </div>
                             )}
@@ -236,6 +229,7 @@ const ChatSection = () => {
                     onStreamingComplete={handleStreamingComplete}
                     isStreaming={isStreaming}
                     setIsStreaming={setIsStreaming}
+                    isLoading={isLoading}
                     conversationId={conversationId}
                     clerkId={userId}
                 />
