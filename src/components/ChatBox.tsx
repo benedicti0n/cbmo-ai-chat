@@ -12,6 +12,7 @@ import {
 } from "./ui/dropdown-menu"
 import { KeyboardEvent, useState } from "react";
 import axios from "axios";
+import Tooltip from "./ui/tooltip";
 
 interface ChatBoxProps {
     onSendMessage: (content: string) => void;
@@ -21,11 +22,12 @@ interface ChatBoxProps {
     isLoading: boolean;
     conversationId: string;
     clerkId: string;
+    modelName?: string; // Optional prop to receive model name from parent
 }
 
 const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreaming, isLoading, conversationId, clerkId }: ChatBoxProps) => {
     const { theme } = useThemeStore();
-    const [modelName] = useState('Gemini');
+    const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash-preview');
     const [message, setMessage] = useState('');
 
     const handleSend = async () => {
@@ -40,13 +42,14 @@ const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreami
         let fullResponse = '';
 
         try {
-            // Call the Gemini API
+            // Call the Gemini API with the selected model
             const response = await fetch('/api/v1/gemini/stream', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    model: selectedModel, // Send the selected model name to the backend
                     messages: [
                         {
                             role: 'user',
@@ -153,32 +156,70 @@ const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreami
                     <div className={`flex justify-between items-center ${theme === 'light' ? 'bg-[#6A4DFC]/10' : 'bg-white/5'} p-2`}>
                         <div className="flex rounded-lg">
                             <DropdownMenu>
-                                <DropdownMenuTrigger className={`px-2 py-2 text-xs h-full rounded-lg hover:bg-[#6A4DFC]/30 hover:ring-1 hover:ring-[#6A4DFC] transition-colors duration-100 ease-in-out ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
-                                    {modelName}
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className={`w-48 ${theme === 'light' ? 'bg-[#6A4DFC]/10 text-[#6A4DFC]' : 'bg-black/60 text-white'} backdrop-blur-sm border border-[#6A4DFC] rounded-lg p-2`} align="start" sideOffset={8}>
-                                    <DropdownMenuItem className="hover:bg-[#6A4DFC]/20 focus:bg-[#6A4DFC]/30 rounded-md px-2 py-1.5 text-sm cursor-pointer">OpenAI</DropdownMenuItem>
-                                    <DropdownMenuItem className="hover:bg-[#6A4DFC]/20 focus:bg-[#6A4DFC]/30 rounded-md px-2 py-1.5 text-sm cursor-pointer">Claude</DropdownMenuItem>
-                                    <DropdownMenuItem className="hover:bg-[#6A4DFC]/20 focus:bg-[#6A4DFC]/30 rounded-md px-2 py-1.5 text-sm cursor-pointer">ChatGPT</DropdownMenuItem>
+                                <Tooltip content="Select a model">
+                                    <DropdownMenuTrigger className={`px-2 py-2 text-xs h-full rounded-lg hover:bg-[#6A4DFC]/30 hover:ring-1 hover:ring-[#6A4DFC] transition-colors duration-100 ease-in-out ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
+                                        {selectedModel}
+                                    </DropdownMenuTrigger>
+                                </Tooltip>
+                                <DropdownMenuContent className={`min-w-48 space-y-2 ${theme === 'light' ? 'bg-[#6A4DFC]/10 text-[#6A4DFC]' : 'bg-black/60 text-white'} backdrop-blur-md border border-[#6A4DFC] rounded-lg p-2`} align="start" sideOffset={8}>
+                                    <DropdownMenuItem
+                                        onClick={() => setSelectedModel('gemini-2.5-flash-preview')}
+                                        className={`hover:bg-[#6A4DFC]/20 focus:bg-[#6A4DFC]/30 rounded-md px-2 py-1.5 text-sm cursor-pointer ${selectedModel === 'gemini-2.5-flash-preview' ? 'bg-[#6A4DFC]/30' : ''}`}
+                                    >
+                                        <img src="/gemini-color.svg" alt="Gemini" className="w-4 h-4 mr-2" />
+                                        Gemini 2.5 Flash (Preview)
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => setSelectedModel('gemini-2.0-flash')}
+                                        className={`hover:bg-[#6A4DFC]/20 focus:bg-[#6A4DFC]/30 rounded-md px-2 py-1.5 text-sm cursor-pointer ${selectedModel === 'gemini-2.0-flash' ? 'bg-[#6A4DFC]/30' : ''}`}
+                                    >
+                                        <img src="/gemini-color.svg" alt="Gemini" className="w-4 h-4 mr-2" />
+                                        Gemini 2.0 Flash
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => setSelectedModel('gemini-1.5-flash')}
+                                        className={`hover:bg-[#6A4DFC]/20 focus:bg-[#6A4DFC]/30 rounded-md px-2 py-1.5 text-sm cursor-pointer ${selectedModel === 'gemini-1.5-flash' ? 'bg-[#6A4DFC]/30' : ''}`}
+                                    >
+                                        <img src="/gemini-color.svg" alt="Gemini" className="w-4 h-4 mr-2" />
+                                        Gemini 1.5 Flash
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => setSelectedModel('gemini-1.5-pro')}
+                                        className={`hover:bg-[#6A4DFC]/20 focus:bg-[#6A4DFC]/30 rounded-md px-2 py-1.5 text-sm cursor-pointer ${selectedModel === 'gemini-1.5-pro' ? 'bg-[#6A4DFC]/30' : ''}`}
+                                    >
+                                        <img src="/gemini-color.svg" alt="Gemini" className="w-4 h-4 mr-2" />
+                                        Gemini 1.5 Pro
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => setSelectedModel('gemini-1.0-pro')}
+                                        className={`hover:bg-[#6A4DFC]/20 focus:bg-[#6A4DFC]/30 rounded-md px-2 py-1.5 text-sm cursor-pointer ${selectedModel === 'gemini-1.0-pro' ? 'bg-[#6A4DFC]/30' : ''}`}
+                                    >
+                                        <img src="/gemini-color.svg" alt="Gemini" className="w-4 h-4 mr-2" />
+                                        Gemini 1.0 Pro (Legacy)
+                                    </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
 
                         <div className="flex gap-2">
-                            <Button variant="ghost" className={`p-0 h-8 w-8 ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
-                                <Paperclip className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                className={`h-8 w-8 p-0 border-[2px] border-[#6a4dfc] ${message.trim() && !isStreaming ? 'bg-[#6A4DFC] hover:bg-[#6A4DFC]/90' : 'bg-white/20 cursor-not-allowed'} transition-colors duration-100 ease-in-out`}
-                                disabled={!message.trim() || isStreaming || isLoading}
-                                onClick={handleSend}
-                            >
-                                {isLoading ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                    <ArrowUp className="h-4 w-4" />
-                                )}
-                            </Button>
+                            <Tooltip content="Not Implemented">
+                                <Button variant="ghost" className={`p-0 h-8 w-8 ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`} disabled>
+                                    <Paperclip className="h-4 w-4" />
+                                </Button>
+                            </Tooltip>
+                            <Tooltip content={message.trim() ? 'Send' : 'Please enter a message'}>
+                                <Button
+                                    className={`h-8 w-8 p-0 border-[2px] border-[#6a4dfc] ${message.trim() && !isStreaming ? 'bg-[#6A4DFC] hover:bg-[#6A4DFC]/90' : 'bg-white/20 cursor-not-allowed'} transition-colors duration-100 ease-in-out`}
+                                    disabled={!message.trim() || isStreaming || isLoading}
+                                    onClick={handleSend}
+                                >
+                                    {isLoading ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <ArrowUp className="h-4 w-4" />
+                                    )}
+                                </Button>
+                            </Tooltip>
                         </div>
                     </div>
                 </div>

@@ -47,6 +47,8 @@ const ChatSection = () => {
         }
     }, [conversation]);
 
+    console.log(messages);
+
     useEffect(() => {
         if (messages.length > 0) {
             localStorage.setItem('chatMessages', JSON.stringify(messages));
@@ -123,7 +125,7 @@ const ChatSection = () => {
 
         const userMessage = {
             content,
-            role: 'user' as const,
+            role: 'user',
         };
 
         const title = content.slice(0, 20);
@@ -189,7 +191,7 @@ const ChatSection = () => {
                         >
                             {messages.length === 0 ? (
                                 <div className="h-full flex items-center justify-center">
-                                    <p className={`text-center font-semibold text-4xl ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
+                                    <p className={`text-center font-semibold text-3xl md:text-5xl ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
                                         {fullGreeting}
                                     </p>
                                 </div>

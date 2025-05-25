@@ -27,19 +27,33 @@ export async function POST(request: NextRequest) {
 
         console.log('Existing conversation:', existingConversation ? 'Found' : 'Not found');
 
-        // Prepare the new message
-        const newUserMessage = {
-            id: crypto.randomUUID(),
-            content: userMessage?.content,
-            role: userMessage?.role,
-            createdAt: new Date().toISOString()
-        };
-        const newAiMessage = {
-            id: crypto.randomUUID(),
-            content: aiMessage?.content,
-            role: aiMessage?.role,
-            createdAt: new Date().toISOString()
-        };
+        // Validate and prepare the new user message
+        const newUserMessage = userMessage?.content?.trim() && userMessage?.role
+            ? {
+                id: crypto.randomUUID(),
+                content: userMessage.content.trim(),
+                role: userMessage.role,
+                createdAt: new Date().toISOString()
+            }
+            : null;
+
+        // Validate and prepare the new AI message
+        const newAiMessage = aiMessage?.content?.trim() && aiMessage?.role
+            ? {
+                id: crypto.randomUUID(),
+                content: aiMessage.content.trim(),
+                role: aiMessage.role,
+                createdAt: new Date().toISOString()
+            }
+            : null;
+
+        // If no valid messages to add, return early
+        if (!newUserMessage && !newAiMessage) {
+            return NextResponse.json(
+                { error: 'No valid messages to add to conversation' },
+                { status: 400 }
+            );
+        }
 
         if (existingConversation) {
             // Update existing conversation
@@ -47,7 +61,18 @@ export async function POST(request: NextRequest) {
                 ? existingConversation.messages as Message[]
                 : [];
 
-            const updatedMessages = [...currentMessages, newAiMessage];
+            // Create a new array with existing messages
+            const updatedMessages = [...currentMessages];
+            
+            // Add user message if valid
+            if (newUserMessage) {
+                updatedMessages.push(newUserMessage);
+            }
+            
+            // Add AI message if valid
+            if (newAiMessage) {
+                updatedMessages.push(newAiMessage);
+            }
 
             await prisma.conversation.update({
                 where: { id: conversationId },
@@ -76,7 +101,7 @@ export async function POST(request: NextRequest) {
                     id: conversationId,
                     title,
                     clerkId,
-                    messages: [newUserMessage],
+                    messages: newUserMessage ? [newUserMessage] : [],
                     createdAt: new Date(),
                     updatedAt: new Date()
                 }
