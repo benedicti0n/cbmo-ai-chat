@@ -186,16 +186,16 @@ const ChatSection = () => {
             `}
         >
             <div
-                className={`flex flex-col items-center justify-between h-full w-full rounded-tl-xl relative ${theme === 'light' ? 'bg-[#6A4DFC]/10' : ''}`}
+                className={`flex flex-col items-center justify-between h-full w-full rounded-tl-xl relative ${messages.length === 0 ? 'h-full' : 'min-h-[20%] max-h-full pt-16'} ${theme === 'light' ? 'bg-[#6A4DFC]/10' : ''}`}
             >
                 <div className="flex-1 flex justify-center overflow-hidden w-[95vw] md:w-[532px] lg:w-[720px] h-full">
-                    <div className="relative w-full h-full flex items-end justify-center">
+                    <div className="relative w-full h-full flex items-center justify-center">
                         <div
                             ref={messagesContainerRef}
-                            className={`w-full overflow-y-auto py-4 scrollbar-hide px-2 ${messages.length === 0 ? 'h-full' : 'min-h-[10%] max-h-full pt-16'}`}
+                            className={`w-full overflow-y-auto py-4 scrollbar-hide px-2 ${messages.length === 0 ? 'h-full' : 'min-h-[20%] max-h-full pt-16'}`}
                         >
                             {messages.length === 0 ? (
-                                <div className="h-full flex items-center justify-center">
+                                <div className="min-h-[90%] max-h-[90%] flex items-center justify-center">
                                     <p className={`text-center font-semibold text-3xl md:text-5xl ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
                                         {fullGreeting}
                                     </p>
