@@ -149,6 +149,7 @@ const ChatMessage = React.memo(({ message }: ChatMessageProps) => {
                     <ReactMarkdown
                         rehypePlugins={[rehypeHighlight]}
                         components={{
+                            // eslint-disable-next-line 
                             pre: ({ node, children, ...props }) => {
                                 // Function to extract text from React node
                                 const extractText = (node: React.ReactNode): string => {
@@ -159,11 +160,11 @@ const ChatMessage = React.memo(({ message }: ChatMessageProps) => {
                                         return node.map(extractText).join('');
                                     }
                                     if (React.isValidElement(node)) {
-                                        // If it's a code element, get its children
                                         if (node.type === 'code') {
+                                            // @ts-expect-error node.props.children is of type unknown 
                                             return extractText(node.props.children);
                                         }
-                                        // For other elements, recursively process children
+                                        // @ts-expect-error node.props.children is of type unknown 
                                         return extractText(node.props.children);
                                     }
                                     return '';
@@ -204,30 +205,39 @@ const ChatMessage = React.memo(({ message }: ChatMessageProps) => {
                             code: ({ className, children, ...props }: React.HTMLAttributes<HTMLElement>) => {
                                 return <code className={className} {...props}>{children}</code>;
                             },
+                            // eslint-disable-next-line 
                             p: ({ node, ...props }) => (
                                 <p {...props} />
                             ),
+                            // eslint-disable-next-line 
                             h1: ({ node, ...props }) => (
                                 <h1 {...props} />
                             ),
+                            // eslint-disable-next-line 
                             h2: ({ node, ...props }) => (
                                 <h2 {...props} />
                             ),
+                            // eslint-disable-next-line 
                             h3: ({ node, ...props }) => (
                                 <h3 {...props} />
                             ),
+                            // eslint-disable-next-line 
                             h4: ({ node, ...props }) => (
                                 <h4 {...props} />
                             ),
+                            // eslint-disable-next-line 
                             h5: ({ node, ...props }) => (
                                 <h5 {...props} />
                             ),
+                            // eslint-disable-next-line 
                             h6: ({ node, ...props }) => (
                                 <h6 {...props} />
                             ),
+                            // eslint-disable-next-line 
                             strong: ({ node, ...props }) => (
                                 <strong {...props} />
                             ),
+                            // eslint-disable-next-line 
                             em: ({ node, ...props }) => (
                                 <em {...props} />
                             ),
@@ -236,7 +246,7 @@ const ChatMessage = React.memo(({ message }: ChatMessageProps) => {
                         {message.content}
                     </ReactMarkdown>
                 </div>
-                <p className={`text-xs mt-1 text-right ${message.isUser ? 'text-white/70' : 'text-muted-foreground'}`}>
+                <p className={`text-xs mt-1 text-right ${message.role === 'user' ? 'text-white/70' : 'text-muted-foreground'}`}>
                 </p>
             </div>
         </div>

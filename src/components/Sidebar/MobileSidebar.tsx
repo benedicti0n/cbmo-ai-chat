@@ -107,13 +107,6 @@ export default function MobileSidebar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, setOpen]);
 
-  const openSearch = () => {
-    setSearchQuery('');
-    if (window.innerWidth <= 768) {
-      setOpen(false);
-    }
-  };
-
   return (
     <>
       {/* Sidebar Toggle Button */}

@@ -13,6 +13,8 @@ const MODEL_MAP: Record<string, string> = {
 const DEFAULT_MODEL = 'gemini-1.5-flash-latest';
 
 // Helper function to convert the stream to a ReadableStream
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function streamToReadableStream(stream: AsyncGenerator<any>): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 

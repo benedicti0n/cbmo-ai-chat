@@ -166,6 +166,7 @@ const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreami
                                         onClick={() => setSelectedModel('gemini-2.0-flash')}
                                         className={`hover:bg-[#6A4DFC]/20 focus:bg-[#6A4DFC]/30 rounded-md px-2 py-1.5 text-sm cursor-pointer ${selectedModel === 'gemini-2.0-flash' ? 'bg-[#6A4DFC]/30' : ''}`}
                                     >
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img src="/gemini-color.svg" alt="Gemini" className="w-4 h-4 mr-2" />
                                         Gemini 2.0 Flash
                                     </DropdownMenuItem>
@@ -173,6 +174,7 @@ const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreami
                                         onClick={() => setSelectedModel('gemini-1.5-flash')}
                                         className={`hover:bg-[#6A4DFC]/20 focus:bg-[#6A4DFC]/30 rounded-md px-2 py-1.5 text-sm cursor-pointer ${selectedModel === 'gemini-1.5-flash' ? 'bg-[#6A4DFC]/30' : ''}`}
                                     >
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img src="/gemini-color.svg" alt="Gemini" className="w-4 h-4 mr-2" />
                                         Gemini 1.5 Flash
                                     </DropdownMenuItem>

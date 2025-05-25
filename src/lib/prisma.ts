@@ -12,6 +12,7 @@ const prismaClient = new PrismaClient({
 prismaClient
   .$connect()
   .then(() => console.log('✅ Successfully connected to the database'))
+  // @ts-expect
   .catch((err) => console.error('❌ Failed to connect to the database:', err))
 
 export const prisma = globalForPrisma.prisma ?? prismaClient

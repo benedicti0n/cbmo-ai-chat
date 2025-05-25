@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     if (eventType === 'user.created') {
       await prisma.user.create({
         data: {
-          clerkId: userId,
+          clerkId: userId!,
           email: evt.data.email_addresses[0].email_address,
           firstName: evt.data.first_name,
           lastName: evt.data.last_name,
@@ -61,12 +61,7 @@ export async function POST(req: Request) {
       const user = await prisma.user.findUnique({
         where: { clerkId: userId },
         include: {
-          conversations: {
-            include: {
-              messages: true,
-            },
-          },
-          messages: true,
+          conversations: true,
         },
       })
 
@@ -76,36 +71,17 @@ export async function POST(req: Request) {
         })
       }
 
-      // Delete messages not tied to a conversation (if any)
-      if (user.messages.length > 0) {
-        await prisma.message.deleteMany({
-          where: {
-            userId: user.id,
-            conversationId: null,
-          },
-        })
-      }
-
-      // Delete messages within conversations
-      for (const conversation of user.conversations) {
-        await prisma.message.deleteMany({
-          where: {
-            conversationId: conversation.id,
-          },
-        })
-      }
-
       // Delete all conversations
       await prisma.conversation.deleteMany({
         where: {
-          userId: user.id,
+          clerkId: userId,
         },
       })
 
       // Finally delete the user
       await prisma.user.delete({
         where: {
-          id: user.id,
+          clerkId: userId,
         },
       })
     }

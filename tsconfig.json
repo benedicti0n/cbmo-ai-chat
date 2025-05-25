@@ -23,5 +23,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "case study/case-study.tst"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "**/generated/**"]
 }

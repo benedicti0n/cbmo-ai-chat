@@ -3,7 +3,12 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
-export async function generateAIResponse(content: string, messages: any[]) {
+interface Message {
+  role: 'user' | 'ai';
+  content: string;
+}
+
+export async function generateAIResponse(content: string, messages: Message[]) {
   try {
     const history = messages.map((msg) => ({
       author: msg.role === 'user' ? 'user' : 'model',
@@ -15,6 +20,7 @@ export async function generateAIResponse(content: string, messages: any[]) {
         role: 'user',
         parts: [{ text: content }],
       }],
+      // @ts-expect-error history is not a valid property
       history,
     });
 

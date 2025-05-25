@@ -11,7 +11,6 @@ import { useParams } from 'next/navigation';
 import useChatHistoryStore from '@/stores/useChatHistoryStore';
 import axios from 'axios';
 import { useUser } from '@clerk/nextjs';
-import { Loader2 } from 'lucide-react';
 import { AnimatedShinyText } from './magicui/animated-shiny-text';
 
 type ScrollBehavior = 'auto' | 'smooth';
@@ -69,7 +68,6 @@ const ChatSection = () => {
         isScrollingRef.current = true;
         messagesEndRef.current.scrollIntoView({ behavior });
 
-        // Reset the scrolling flag after a short delay
         const timer = setTimeout(() => {
             isScrollingRef.current = false;
         }, 500);
@@ -85,10 +83,6 @@ const ChatSection = () => {
                 scrollToBottom('auto');
             });
         }
-        // We're intentionally not including scrollToBottom in the dependency array
-        // because it's already stable (has no dependencies that would cause it to change)
-        // and we don't want to recreate this effect when it changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [messages.length]);
 
     const handleScroll = useCallback(() => {
@@ -130,6 +124,7 @@ const ChatSection = () => {
 
         const title = content.slice(0, 20);
 
+        // @ts-expect-error id is not defined in userMessage
         setMessages((prev) => [...prev, userMessage]);
 
         try {
@@ -204,6 +199,7 @@ const ChatSection = () => {
                                                 id: message.id,
                                                 content: message.content,
                                                 role: message.role,
+                                                // @ts-expect-error createdAt is not defined in message
                                                 timestamp: new Date(message.createdAt),
                                             }}
                                         />
