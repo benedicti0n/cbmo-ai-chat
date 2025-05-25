@@ -14,10 +14,6 @@ interface DesktopSidebarProps {
   conversations: Conversation[]
 };
 
-type ChatHistoryItem = {
-  id: string;
-};
-
 export default function DesktopSidebar({ conversations }: DesktopSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const { createConversation } = useChatHistoryStore();

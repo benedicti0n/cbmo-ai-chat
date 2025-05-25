@@ -13,10 +13,10 @@ import {
 import { KeyboardEvent, useState } from "react";
 
 interface ChatBoxProps {
-    onSendMessage: (message: string) => void;
-    onStreamingComplete?: (content: string) => void;
-    isStreaming?: boolean;
-    setIsStreaming?: (isStreaming: boolean) => void;
+    onSendMessage: (content: string) => void;
+    onStreamingComplete: () => void;
+    isStreaming: boolean;
+    setIsStreaming: (val: boolean) => void;
 }
 
 const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreaming }: ChatBoxProps) => {

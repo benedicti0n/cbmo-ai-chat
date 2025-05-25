@@ -9,7 +9,7 @@ import { Button } from './ui/button';
 type Message = {
     id: string;
     content: string;
-    isUser: boolean;
+    role: 'user' | 'ai';
     timestamp: Date;
 };
 
@@ -40,9 +40,9 @@ const ChatMessage = React.memo(({ message }: ChatMessageProps) => {
     };
 
     return (
-        <div className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
+        <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
-                className={`max-w-[60%] md:max-w-[80%] rounded-2xl p-2 relative group ${message.isUser
+                className={`max-w-[80%] md:max-w-[80%] rounded-2xl p-2 relative group ${message.role === 'user'
                     ? `${theme === 'light'
                         ? 'bg-[#6A4DFC]/30 backdrop-blur-sm rounded-br-none text-[#3F29C7] border-[1px] border-[#6A4DFC]'
                         : 'bg-[#6A4DFC]/[30%] backdrop-blur-sm rounded-br-none text-white border-[1px] border-[#6A4DFC]'}`
@@ -58,7 +58,7 @@ const ChatMessage = React.memo(({ message }: ChatMessageProps) => {
                     className={`
                         absolute -bottom-8 transition-all duration-200 rounded-md
                         ${copiedMessage && `bg-emerald-500/50 hover:bg-emerald-500/50 border-[1px] border-emerald-500 hover:ring-0 ${theme === 'dark' ? 'text-white' : 'text-black'}`}
-                        ${message.isUser ? 'right-0' : 'left-0'}
+                        ${message.role === 'user' ? 'right-0' : 'left-0'}
                         `}
                     title="Copy message"
                     style={{ height: '12px', width: '12px', padding: '12px' }}
@@ -242,8 +242,8 @@ const ChatMessage = React.memo(({ message }: ChatMessageProps) => {
     );
 }, (prevProps, nextProps) => {
     return (
-        prevProps.message.content === nextProps.message.content &&
-        prevProps.message.timestamp.getTime() === nextProps.message.timestamp.getTime()
+        prevProps?.message?.content === nextProps?.message?.content &&
+        prevProps?.message?.timestamp?.getTime() === nextProps?.message?.timestamp?.getTime()
     );
 });
 

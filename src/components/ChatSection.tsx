@@ -7,14 +7,17 @@ import ScrollToBottomButton from '@/components/ScrollToBottomButton';
 import { useSidebarStore } from '@/stores/useSidebarStore';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useGreeting } from '@/hooks/useGreeting';
+import { useParams } from 'next/navigation';
+import useChatHistoryStore from '@/stores/useChatHistoryStore';
+import axios from 'axios';
+import { useUser } from '@clerk/nextjs';
 
 type ScrollBehavior = 'auto' | 'smooth';
 
 export type Message = {
     id: string;
     content: string;
-    isUser: boolean;
-    timestamp: Date;
+    role: 'user' | 'ai';
 };
 
 const ChatSection = () => {
@@ -28,17 +31,24 @@ const ChatSection = () => {
     const messagesContainerRef = useRef<HTMLDivElement | null>(null);
     const isScrollingRef = useRef<boolean>(false);
 
+    const { user } = useUser();
+    const userId = user?.id as string;
+
+    const { conversationId }: { conversationId: string } = useParams()
+    const streamingContentRef = useRef('');
+
+
     useEffect(() => {
-        const savedMessages = localStorage.getItem('chatMessages');
-        if (savedMessages) {
-            const parsedMessages = JSON.parse(savedMessages).map(
-                (msg: Omit<Message, 'timestamp'> & { timestamp: string }) => ({
-                    ...msg,
-                    timestamp: new Date(msg.timestamp),
-                })
-            );
-            setMessages(parsedMessages);
-        }
+        // const savedMessages = localStorage.getItem('chatMessages');
+        // if (savedMessages) {
+        //     const parsedMessages = JSON.parse(savedMessages).map(
+        //         (msg: Omit<Message, 'timestamp'> & { timestamp: string }) => ({
+        //             ...msg,
+        //             timestamp: new Date(msg.timestamp),
+        //         })
+        //     );
+        //     setMessages(parsedMessages);
+        // }
     }, []);
 
     useEffect(() => {
@@ -111,25 +121,39 @@ const ChatSection = () => {
         };
     }, [handleScroll]);
 
-    const handleSendMessage = useCallback((content: string) => {
+    const handleSendMessage = useCallback(async (content: string) => {
         if (!content.trim()) return;
 
-        const userMessage: Message = {
-            id: Date.now().toString(),
+        const userMessage = {
+            id: crypto.randomUUID(),
             content,
-            isUser: true,
-            timestamp: new Date(),
+            role: 'user' as const,
         };
 
+        const title = content.slice(0, 20);
+
         setMessages((prev) => [...prev, userMessage]);
-    }, []);
+
+        try {
+            await axios.post('/api/v1/chat/addChat', {
+                conversationId,
+                title,
+                clerkId: userId,
+                userMessage,
+            });
+        } catch (error) {
+            console.error('Error adding user message:', error);
+            // Optionally, you might want to remove the message from the UI if the API call fails
+            // setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
+        }
+    }, [conversationId, userId]);
 
     const handleStreamingComplete = useCallback((content: string) => {
         setMessages((prev) => {
             const lastMessage = prev[prev.length - 1];
 
             // If the last message is from the assistant, update it
-            if (lastMessage && !lastMessage.isUser) {
+            if (lastMessage && lastMessage.role === 'ai') {
                 return [
                     ...prev.slice(0, -1),
                     { ...lastMessage, content },
@@ -142,8 +166,7 @@ const ChatSection = () => {
                 {
                     id: `ai-${Date.now()}`,
                     content,
-                    isUser: false,
-                    timestamp: new Date(),
+                    role: 'ai' as const,
                 },
             ];
         });
@@ -177,9 +200,17 @@ const ChatSection = () => {
                                     </p>
                                 </div>
                             ) : (
-                                <div className="space-y-4 ">
+                                <div className="space-y-4 w-full">
                                     {messages.map((message) => (
-                                        <ChatMessage key={message.id} message={message} />
+                                        <ChatMessage
+                                            key={message.id}
+                                            message={{
+                                                id: message.id,
+                                                content: message.content,
+                                                role: message.role,
+                                                timestamp: new Date(message.createdAt),
+                                            }}
+                                        />
                                     ))}
                                     <div ref={messagesEndRef} />
                                 </div>
