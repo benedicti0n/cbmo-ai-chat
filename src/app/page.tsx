@@ -9,5 +9,9 @@ export default function Home() {
   const { createConversation } = useChatHistoryStore();
 
   const conversationId = createConversation('New Chat', userId!);
-  redirect(`/chat/${conversationId}`);
+  if (!user) {
+    redirect('/chat');
+  } else {
+    redirect(`/chat/${conversationId}`);
+  }
 }

@@ -188,28 +188,35 @@ export default function DesktopSidebar() {
               <h3 className={`flex items-center justify-between text-xs font-bold ${theme === 'light' ? 'text-[#3F29C7]' : 'text-[#6A4DFC]'} uppercase tracking-wider mb-2`}>
                 Recent Chats
               </h3>
-              <div className="space-y-1">
-                {filteredConversations.length > 0 ? (
-                  filteredConversations.map((chat) => (
-                    <Link
-                      key={chat.id}
-                      href={`/chat/${chat.id}`}
-                      className={`block p-2 rounded-md ${theme === 'light' ? 'text-[#6A4DFC] hover:bg-white' : 'text-white hover:bg-[#6A4DFC]/[30%]'} transition-colors truncate flex items-center justify-between`}
-                    >
-                      <div className="font-medium text-xs">{chat.title}</div>
-                      <TrashIcon
-                        onClick={(e) => handleDeleteClick(e, chat.id)}
-                        className="text-red-400 cursor-pointer hover:text-red-500 transition-colors duration-100 ease-in-out"
-                        style={{ width: '12px', height: '12px' }}
-                      />
-                    </Link>
-                  ))
-                ) : (
-                  <p className={`p-2 text-xs ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
-                    No chats found
-                  </p>
-                )}
-              </div>
+              {user ? (
+                <div className="space-y-1">
+                  {filteredConversations.length > 0 ? (
+                    filteredConversations.map((chat) => (
+                      <Link
+                        key={chat.id}
+                        href={`/chat/${chat.id}`}
+                        className={`block p-2 rounded-md ${theme === 'light' ? 'text-[#6A4DFC] hover:bg-white' : 'text-white hover:bg-[#6A4DFC]/[30%]'} transition-colors truncate flex items-center justify-between`}
+                      >
+                        <div className="font-medium text-xs">{chat.title}</div>
+                        <TrashIcon
+                          onClick={(e) => handleDeleteClick(e, chat.id)}
+                          className="text-red-400 cursor-pointer hover:text-red-500 transition-colors duration-100 ease-in-out"
+                          style={{ width: '12px', height: '12px' }}
+                        />
+                      </Link>
+                    ))
+                  ) : (
+                    <p className={`p-2 text-xs ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
+                      No chats found
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className={`p-2 text-xs ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
+                  Please sign in to view your chats
+                </p>
+              )}
+
             </div>
           </div>
           {userId && (
