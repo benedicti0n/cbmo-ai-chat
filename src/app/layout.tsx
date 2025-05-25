@@ -18,6 +18,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'CBMO AI Chat',
+  description: 'CBMO AI Chat',
+  keywords: ['CBMO AI Chat', 'AI Chat', 'Chat'],
+  icons: {
+    icon: '/logo.png',
+  },
 }
 
 export default function RootLayout({

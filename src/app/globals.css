@@ -9,8 +9,8 @@
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 @layer base {
@@ -98,13 +98,41 @@ body {
   font-family: "Michroma";
 }
 
+/* Custom text selection */
+::selection {
+  background: #6a4dfc; /* Your primary color */
+  color: white;
+  text-shadow: none;
+}
+
+/* For Firefox */
+::-moz-selection {
+  background: #6a4dfc; /* Your primary color */
+  color: white;
+  text-shadow: none;
+}
+
+/* For dark mode */
+.dark ::selection {
+  background: #8b7bfc; /* Lighter shade for better visibility in dark mode */
+  color: white;
+}
+
+.dark ::-moz-selection {
+  background: #8b7bfc;
+  color: white;
+}
+
 @theme inline {
   @keyframes shiny-text {
-  0%, 90%, 100% {
-    background-position: calc(-100% - var(--shiny-width)) 0;
+    0%,
+    90%,
+    100% {
+      background-position: calc(-100% - var(--shiny-width)) 0;
     }
-  30%, 60% {
-    background-position: calc(100% + var(--shiny-width)) 0;
+    30%,
+    60% {
+      background-position: calc(100% + var(--shiny-width)) 0;
     }
   }
 }
