@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Search, PanelLeft, TrashIcon } from 'lucide-react';
+import { Plus, Search, PanelLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { useThemeStore } from '@/stores/useThemeStore';
@@ -10,11 +10,16 @@ import { useSidebarStore } from '@/stores/useSidebarStore';
 import useChatHistoryStore from '@/stores/useChatHistoryStore';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
-import axios from 'axios';
+import { toast } from 'sonner';
 import { deleteChat, fetchChatHistory } from '@/utils/chatUtils';
+import { CustomModal } from '../ui/CustomModal';
+import { TrashIcon } from 'lucide-react';
+
 
 export default function DesktopSidebar() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [chatToDelete, setChatToDelete] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const { conversations, createConversation, setAllConversations, removeConversation } = useChatHistoryStore();
   const { isOpen, toggleSidebar, setOpen } = useSidebarStore();
   const { theme } = useThemeStore();
@@ -29,35 +34,54 @@ export default function DesktopSidebar() {
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }, [conversations, searchQuery]);
 
-  const handleDeleteChat = async (e: React.MouseEvent, conversationId: string) => {
-    e.stopPropagation();
+  const handleDeleteClick = (e: React.MouseEvent, chatId: string) => {
     e.preventDefault();
-    
-    const success = await deleteChat(conversationId);
-    if (success && userId) {
-      // Remove the conversation from the UI immediately
-      removeConversation(conversationId);
-      
-      // Refresh the full list from the server
-      try {
-        const updatedConversations = await fetchChatHistory(userId);
-        setAllConversations(updatedConversations);
-      } catch (error) {
-        console.error('Error refreshing conversations:', error);
+    e.stopPropagation();
+    setChatToDelete(chatId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteChat = async () => {
+    if (!chatToDelete || !userId) return;
+
+    try {
+      const success = await deleteChat(chatToDelete);
+      if (success) {
+        // Remove the conversation from the UI immediately
+        removeConversation(chatToDelete);
+        toast.success('Chat deleted successfully');
+
+        // Refresh the full list from the server
+        try {
+          const updatedConversations = await fetchChatHistory(userId);
+          setAllConversations(updatedConversations);
+        } catch (error) {
+          console.error('Error refreshing conversations:', error);
+          toast.error('Failed to refresh chat list');
+        }
+      } else {
+        toast.error('Failed to delete chat');
       }
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+      toast.error('Failed to delete chat');
+    } finally {
+      setIsDeleteModalOpen(false);
+      setChatToDelete(null);
     }
   };
 
   const handleNewChat = async () => {
+    if (!userId) return;
     try {
-      const newConversationId = createConversation('New Chat', userId!);
+      const newConversationId = createConversation('New Chat', userId);
       // Refresh the conversations list from the server
-      const response = await axios.get(`/api/v1/chat/history?userId=${userId}`);
-      const data = await response.data;
-      setAllConversations(data);
+      const updatedConversations = await fetchChatHistory(userId);
+      setAllConversations(updatedConversations);
       router.push(`/chat/${newConversationId}`);
     } catch (error) {
       console.error('Error creating new chat:', error);
+      toast.error('Failed to create new chat');
     }
   };
 
@@ -86,7 +110,7 @@ export default function DesktopSidebar() {
   return (
     <>
       {/* Sidebar Toggle Button */}
-      <div className={`fixed top-4 left-4 z-[60] flex items-center justify-center gap-2 backdrop-blur-md ${isOpen ? 'p-0' : 'p-2 rounded-xl border border-[#6A4DFC]'} ${theme === 'light' ? 'bg-[#E1DBFE]' : 'bg-[#231E40]'} `}>
+      <div className={`fixed top-4 left-4 z-[50] flex items-center justify-center gap-2 backdrop-blur-md ${isOpen ? 'p-0' : 'p-2 rounded-xl border border-[#6A4DFC]'} ${theme === 'light' ? 'bg-[#E1DBFE]' : 'bg-[#231E40]'} `}>
         <Button
           onClick={toggleSidebar}
           variant="ghost"
@@ -180,10 +204,10 @@ export default function DesktopSidebar() {
                     className={`block p-2 rounded-md ${theme === 'light' ? 'text-[#6A4DFC] hover:bg-white' : 'text-white hover:bg-[#6A4DFC]/[30%]'} transition-colors truncate flex items-center justify-between`}
                   >
                     <div className="font-medium text-xs">{chat.title}</div>
-                    <TrashIcon 
-                      className="text-red-400 cursor-pointer hover:text-red-500 transition-colors duration-100 ease-in-out" 
-                      style={{ width: '12px', height: '12px' }} 
-                      onClick={(e) => handleDeleteChat(e, chat.id)}
+                    <TrashIcon
+                      onClick={(e) => handleDeleteClick(e, chat.id)}
+                      className="text-red-400 cursor-pointer hover:text-red-500 transition-colors duration-100 ease-in-out"
+                      style={{ width: '12px', height: '12px' }}
                     />
                   </Link>
                 ))
@@ -196,6 +220,21 @@ export default function DesktopSidebar() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <CustomModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setChatToDelete(null);
+        }}
+        onConfirm={handleDeleteChat}
+        title="Delete Chat"
+        description="Are you sure you want to delete this chat? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        theme={theme}
+      />
     </>
   );
 }

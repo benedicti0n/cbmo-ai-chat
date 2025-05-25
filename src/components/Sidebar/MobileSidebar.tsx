@@ -7,14 +7,19 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useSidebarStore } from '@/stores/useSidebarStore';
-import useChatHistoryStore from '@/stores/useChatHistoryStore';
+import useChatHistoryStore, { Conversation } from '@/stores/useChatHistoryStore';
+import { CustomModal } from '../ui/CustomModal';
+import { deleteChat, fetchChatHistory } from '@/utils/chatUtils';
+import { toast } from 'sonner';
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
-import axios from 'axios';
+import { TrashIcon } from 'lucide-react';
 
 export default function MobileSidebar() {
   const [searchQuery, setSearchQuery] = useState('');
-  const { conversations, createConversation, setAllConversations } = useChatHistoryStore();
+  const [chatToDelete, setChatToDelete] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const { conversations, createConversation, setAllConversations, removeConversation } = useChatHistoryStore();
   const { isOpen, toggleSidebar, setOpen } = useSidebarStore();
   const { theme } = useThemeStore();
   const router = useRouter();
@@ -22,24 +27,25 @@ export default function MobileSidebar() {
   const userId = user?.id;
 
   // Memoize filtered conversations to prevent unnecessary recalculations
-  const filteredConversations = useMemo(() => {
-    return conversations
-      .filter((conv) =>
+  const filteredConversations = useMemo(() =>
+    (conversations as Conversation[])
+      .filter((conv: Conversation) =>
         conv.title.toLowerCase().includes(searchQuery.toLowerCase())
       )
       .sort(
-        (a, b) =>
+        (a: Conversation, b: Conversation) =>
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-      );
-  }, [conversations, searchQuery]);
+      ) as Conversation[],
+    [conversations, searchQuery]
+  );
 
   const handleNewChat = async () => {
     try {
       if (!userId) return;
       const newConversationId = createConversation('New Chat', userId);
       // Refresh the conversations list from the server
-      const response = await axios.get(`/api/v1/chat/history?userId=${userId}`);
-      const data = response.data;
+      const response = await fetch(`/api/v1/chat/history?userId=${userId}`);
+      const data = await response.json();
       setAllConversations(data);
       setOpen(false);
       router.push(`/chat/${newConversationId}`);
@@ -48,7 +54,41 @@ export default function MobileSidebar() {
     }
   };
 
+  const handleDeleteClick = (e: React.MouseEvent, chatId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setChatToDelete(chatId);
+    setIsDeleteModalOpen(true);
+  };
 
+  const handleDeleteChat = async () => {
+    if (!chatToDelete) return;
+    try {
+      const success = await deleteChat(chatToDelete);
+      if (success && userId) {
+        // Remove the conversation from the UI immediately
+        removeConversation(chatToDelete);
+        toast.success('Chat deleted successfully');
+
+        // Refresh the full list from the server
+        try {
+          const updatedConversations = await fetchChatHistory(userId);
+          setAllConversations(updatedConversations);
+        } catch (error) {
+          console.error('Error refreshing conversations:', error);
+          toast.error('Failed to refresh chat list');
+        }
+      } else {
+        toast.error('Failed to delete chat');
+      }
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+      toast.error('Failed to delete chat');
+    } finally {
+      setIsDeleteModalOpen(false);
+      setChatToDelete(null);
+    }
+  };
 
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
@@ -137,7 +177,6 @@ export default function MobileSidebar() {
               <span className="text-xs">New Chat</span>
             </Button>
 
-
             {/* Search Chats */}
             <div className="mt-4 relative">
               <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
@@ -159,13 +198,18 @@ export default function MobileSidebar() {
               </h3>
               <div className="space-y-1">
                 {filteredConversations.length > 0 ? (
-                  filteredConversations.map((chat) => (
+                  filteredConversations.map((chat: Conversation) => (
                     <Link
                       key={chat.id}
                       href={`/chat/${chat.id}`}
-                      className={`block p-2 rounded-md ${theme === 'light' ? 'text-[#6A4DFC] hover:bg-[#6A4DFC]/[10%]' : 'text-white hover:bg-[#6A4DFC]/[10%]'} transition-colors truncate`}
+                      className={`block p-2 rounded-md ${theme === 'light' ? 'text-[#6A4DFC] hover:bg-[#6A4DFC]/[10%]' : 'text-white hover:bg-[#6A4DFC]/[10%]'} transition-colors truncate flex items-center justify-between`}
                     >
                       <div className="font-medium text-xs">{chat.title}</div>
+                      <TrashIcon
+                        onClick={(e) => handleDeleteClick(e, chat.id)}
+                        className="text-red-400 cursor-pointer hover:text-red-500 transition-colors duration-100 ease-in-out"
+                        style={{ width: '12px', height: '12px' }}
+                      />
                     </Link>
                   ))
                 ) : (
@@ -178,6 +222,21 @@ export default function MobileSidebar() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <CustomModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setChatToDelete(null);
+        }}
+        onConfirm={handleDeleteChat}
+        title="Delete Chat"
+        description="Are you sure you want to delete this chat? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        theme={theme}
+      />
     </>
   );
 }
