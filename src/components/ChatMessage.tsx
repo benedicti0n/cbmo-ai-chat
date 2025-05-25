@@ -57,7 +57,7 @@ const ChatMessage = React.memo(({ message }: ChatMessageProps) => {
                     variant="ghost"
                     onClick={() => copyToClipboard(message.content, 'message')}
                     className={`
-                        absolute -bottom-8 transition-all duration-200 rounded-md
+                        absolute -bottom-7 transition-all duration-200 rounded-md
                         ${copiedMessage && `bg-emerald-500/50 hover:bg-emerald-500/50 border-[1px] border-emerald-500 hover:ring-0 ${theme === 'dark' ? 'text-white' : 'text-black'}`}
                         ${message.role === 'user' ? 'right-0' : 'left-0'}
                         `}

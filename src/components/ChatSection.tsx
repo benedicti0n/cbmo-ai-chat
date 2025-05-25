@@ -33,6 +33,7 @@ const ChatSection = () => {
     const messagesContainerRef = useRef<HTMLDivElement | null>(null);
     const isScrollingRef = useRef<boolean>(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isThinking, setIsThinking] = useState(false);
 
     const { user } = useUser();
     const userId = user?.id as string;
@@ -117,10 +118,9 @@ const ChatSection = () => {
     }, [handleScroll]);
 
     const handleSendMessage = useCallback(async (content: string) => {
-        setIsLoading(true);
+        setIsThinking(true);
         if (!content.trim()) return;
         if (!user) {
-            setIsLoading(false);
             router.push('/signup');
             return;
         }
@@ -144,10 +144,11 @@ const ChatSection = () => {
                     userMessage,
                 });
             }
-            setIsLoading(false);
         } catch (error) {
             console.error('Error adding user message:', error);
             // setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
+        } finally {
+            setIsThinking(false);
         }
     }, [conversationId, userId]);
 
@@ -178,53 +179,53 @@ const ChatSection = () => {
     return (
         <div
             className={`
-                flex items-center justify-center relative
+                flex flex-col items-center relative
                 ${isOpen
                     ? 'md:ml-56 md:mt-4 w-full h-screen md:w-[calc(100vw-224px)] md:h-[calc(100vh-16px)] md:rounded-tl-xl md:border-l-[1px] md:border-t-[1px] md:border-[#6A4DFC]'
                     : 'ml-0 mt-0 w-full h-screen'}
                 ${theme === 'light' ? 'bg-white' : 'bg-white/5'}
             `}
         >
-            <div
-                className={`flex flex-col items-center justify-between h-full w-full rounded-tl-xl relative ${messages.length === 0 ? 'h-full' : 'min-h-[20%] max-h-full pt-16'} ${theme === 'light' ? 'bg-[#6A4DFC]/10' : ''}`}
-            >
-                <div className="flex-1 flex justify-center overflow-hidden w-[95vw] md:w-[532px] lg:w-[720px] h-full">
-                    <div className="relative w-full h-full flex items-center justify-center">
-                        <div
-                            ref={messagesContainerRef}
-                            className={`w-full overflow-y-auto py-4 scrollbar-hide px-2 ${messages.length === 0 ? 'h-full' : 'min-h-[20%] max-h-full pt-16'}`}
-                        >
-                            {messages.length === 0 ? (
-                                <div className="min-h-[90%] max-h-[90%] flex items-center justify-center">
-                                    <p className={`text-center font-semibold text-3xl md:text-5xl ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
-                                        {fullGreeting}
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="space-y-4 w-full">
-                                    {messages.map((message) => (
-                                        <ChatMessage
-                                            key={message.id}
-                                            message={{
-                                                id: message.id,
-                                                content: message.content,
-                                                role: message.role,
-                                                // @ts-expect-error createdAt is not defined in message
-                                                timestamp: new Date(message.createdAt),
-                                            }}
-                                        />
-                                    ))}
-                                    {isLoading && (
-                                        <div className="h-2 w-2 mt-2 relative">
-                                            <AnimatedShinyText className="text-center text-sm font-semibold text-[#6A4DFC]">Thinking...</AnimatedShinyText>
+            <div className="w-full h-full flex flex-col">
+                {/* Messages Container */}
+                <div className={`w-full overflow-y-auto ${messages.length === 0 ? 'h-full' : 'flex-1'} h-full`}>
+                    <div className={`flex justify-center ${messages.length === 0 ? 'items-center' : 'items-end'} w-full h-full`}>
+                        <div className={`relative w-[95vw] md:w-[532px] lg:w-[720px] ${messages.length === 0 ? 'h-full' : 'h-[80%]'}`}>
+                            <div
+                                ref={messagesContainerRef}
+                                className={`w-full px-2 pt-4 pb-4 ${messages.length === 0 ? 'h-full flex items-center justify-center' : 'min-h-[15%] max-h-[85%]'}`}
+                            >
+                                <div className="w-full">
+                                    {messages.length === 0 ? (
+                                        <div className="h-full flex items-center justify-center">
+                                            <p className={`text-center font-semibold text-3xl md:text-5xl px-4 ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
+                                                {fullGreeting}
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4 w-full">
+                                            {messages.map((message) => (
+                                                <ChatMessage
+                                                    key={message.id}
+                                                    message={{
+                                                        id: message.id,
+                                                        content: message.content,
+                                                        role: message.role,
+                                                        // @ts-expect-error createdAt is not defined in message
+                                                        timestamp: new Date(message.createdAt),
+                                                    }}
+                                                />
+                                            ))}
+                                            {isThinking && (
+                                                <div className="h-2 w-2 py-6 relative">
+                                                    <AnimatedShinyText className="text-center text-md font-semibold text-[#6A4DFC]">Thinking...</AnimatedShinyText>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                     <div ref={messagesEndRef} />
                                 </div>
-                            )}
-                        </div>
-
-                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+                            </div>
                             <ScrollToBottomButton
                                 onClick={() => scrollToBottom('smooth')}
                                 show={showScrollButton}
@@ -232,15 +233,24 @@ const ChatSection = () => {
                         </div>
                     </div>
                 </div>
-                <ChatBox
-                    onSendMessage={handleSendMessage}
-                    onStreamingComplete={handleStreamingComplete}
-                    isStreaming={isStreaming}
-                    setIsStreaming={setIsStreaming}
-                    isLoading={isLoading}
-                    conversationId={conversationId}
-                    clerkId={userId}
-                />
+
+                {/* ChatBox Container */}
+                <div className="w-full">
+                    <div className="flex justify-center w-full">
+                        <div className="w-[95vw] md:w-[532px] lg:w-[720px] relative">
+                            <ChatBox
+                                onSendMessage={handleSendMessage}
+                                onStreamingComplete={handleStreamingComplete}
+                                isStreaming={isStreaming}
+                                setIsStreaming={setIsStreaming}
+                                isLoading={isLoading}
+                                setIsLoading={setIsLoading}
+                                conversationId={conversationId}
+                                clerkId={userId}
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

@@ -20,18 +20,21 @@ interface ChatBoxProps {
     isStreaming: boolean;
     setIsStreaming: (val: boolean) => void;
     isLoading: boolean;
+    setIsLoading: (val: boolean) => void;
     conversationId: string;
     clerkId: string;
     modelName?: string; // Optional prop to receive model name from parent
 }
 
-const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreaming, isLoading, conversationId, clerkId }: ChatBoxProps) => {
+const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreaming, isLoading, setIsLoading, conversationId, clerkId }: ChatBoxProps) => {
     const { theme } = useThemeStore();
     const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash-preview');
     const [message, setMessage] = useState('');
 
     const handleSend = async () => {
         if (!message.trim() || isStreaming) return;
+
+        setIsLoading(true);
 
         // Send the user message
         onSendMessage(message);
@@ -122,6 +125,7 @@ const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreami
             } catch (err) {
                 console.error('Failed to cancel reader:', err);
             }
+            setIsLoading?.(false);
         }
     };
 
@@ -133,7 +137,7 @@ const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreami
     };
 
     return (
-        <div className="w-[95vw] md:w-[532px] lg:w-[720px] relative bottom-32 md:bottom-0">
+        <div className="w-[95vw] md:w-[532px] lg:w-[720px] relative bottom-0">
             <div
                 className={`w-full max-h-[400px] flex flex-col justify-end 
                     ${theme === 'light' ? 'bg-[#6A4DFC]/10' : 'bg-[#6A4DFC]/[10%]'} 
