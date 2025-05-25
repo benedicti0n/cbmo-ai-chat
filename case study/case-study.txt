@@ -1,1 +1,1 @@
-after login the jwt token is visible to the url
+after login the jwt token is visible to the url in CBOM homepage
