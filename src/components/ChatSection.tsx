@@ -11,7 +11,6 @@ import { useParams } from 'next/navigation';
 import useChatHistoryStore from '@/stores/useChatHistoryStore';
 import axios from 'axios';
 import { useUser } from '@clerk/nextjs';
-import { AnimatedShinyText } from './magicui/animated-shiny-text';
 import { useRouter } from 'next/navigation';
 
 type ScrollBehavior = 'auto' | 'smooth';
@@ -20,6 +19,7 @@ export type Message = {
     id: string;
     content: string;
     role: 'user' | 'ai';
+    timestamp: Date;
 };
 
 const ChatSection = () => {
@@ -64,7 +64,21 @@ const ChatSection = () => {
                 scrollToBottom('smooth');
             }
         }
+
     }, [messages]);
+
+    const handleScroll = useCallback((e?: React.UIEvent<HTMLDivElement>) => {
+        // Prevent the scroll event from being handled if it's a programmatic scroll
+        if (e && isScrollingRef.current) return;
+        const container = messagesContainerRef.current;
+        if (!container || isScrollingRef.current) return;
+
+        const { scrollTop, scrollHeight, clientHeight } = container;
+        const scrollThreshold = 100; // Pixels from bottom to consider "at bottom"
+        const isAtBottom = Math.abs(scrollHeight - (scrollTop + clientHeight)) <= scrollThreshold;
+
+        setShowScrollButton(!isAtBottom);
+    }, []);
 
     const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
         if (!messagesEndRef.current) return;
@@ -72,50 +86,29 @@ const ChatSection = () => {
         isScrollingRef.current = true;
         messagesEndRef.current.scrollIntoView({ behavior });
 
-        const timer = setTimeout(() => {
+        if (behavior === 'smooth') {
+            const timer = setTimeout(() => {
+                isScrollingRef.current = false;
+                setShowScrollButton(false);
+            }, 100);
+            return () => clearTimeout(timer);
+        } else {
             isScrollingRef.current = false;
-        }, 500);
-
-        return () => clearTimeout(timer);
+            setShowScrollButton(false);
+        }
     }, []);
 
-    // Auto-scroll effect when new messages arrive
     useEffect(() => {
         if (messages.length > 0) {
-            // Use requestAnimationFrame to ensure the DOM is updated before scrolling
             requestAnimationFrame(() => {
                 scrollToBottom('auto');
             });
         }
-    }, [messages.length]);
-
-    const handleScroll = useCallback(() => {
-        if (!messagesContainerRef.current || isScrollingRef.current) return;
-
-        const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
-        const isAtBottom = scrollHeight - scrollTop <= clientHeight + 50;
-
-        setShowScrollButton(!isAtBottom);
-    }, []);
+    }, [messages.length, scrollToBottom]);
 
     useEffect(() => {
-        const container = messagesContainerRef.current;
-        if (!container) return;
-
-        let timeoutId: NodeJS.Timeout;
-        const debouncedHandleScroll = () => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(handleScroll, 50);
-        };
-
-        container.addEventListener('scroll', debouncedHandleScroll);
         handleScroll();
-
-        return () => {
-            container.removeEventListener('scroll', debouncedHandleScroll);
-            clearTimeout(timeoutId);
-        };
-    }, [handleScroll]);
+    }, [messages, handleScroll]);
 
     const handleSendMessage = useCallback(async (content: string) => {
         setIsThinking(true);
@@ -126,13 +119,14 @@ const ChatSection = () => {
         }
 
         const userMessage = {
+            id: `user-${Date.now()}`,
             content,
-            role: 'user',
+            role: 'user' as const,
+            timestamp: new Date(),
         };
 
         const title = content.slice(0, 20);
 
-        // @ts-expect-error id is not defined in userMessage
         setMessages((prev) => [...prev, userMessage]);
 
         try {
@@ -146,7 +140,6 @@ const ChatSection = () => {
             }
         } catch (error) {
             console.error('Error adding user message:', error);
-            // setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
         } finally {
             setIsThinking(false);
         }
@@ -156,21 +149,24 @@ const ChatSection = () => {
         setMessages((prev) => {
             const lastMessage = prev[prev.length - 1];
 
-            // If the last message is from the assistant, update it
             if (lastMessage && lastMessage.role === 'ai') {
                 return [
                     ...prev.slice(0, -1),
-                    { ...lastMessage, content },
+                    {
+                        ...lastMessage,
+                        content,
+                        timestamp: new Date()
+                    },
                 ];
             }
 
-            // Otherwise, add a new message
             return [
                 ...prev,
                 {
                     id: `ai-${Date.now()}`,
                     content,
                     role: 'ai' as const,
+                    timestamp: new Date()
                 },
             ];
         });
@@ -188,46 +184,55 @@ const ChatSection = () => {
         >
             <div className="w-full h-full flex flex-col">
                 {/* Messages Container */}
-                <div className={`w-full overflow-y-auto ${messages.length === 0 ? 'h-full' : 'flex-1'} h-full scrollbar-hide`}>
-                    <div className={`flex justify-center ${messages.length === 0 ? 'items-center' : 'items-end'} w-full h-full`}>
-                        <div className={`relative w-[95vw] md:w-[532px] lg:w-[720px] ${messages.length === 0 ? 'h-full' : 'h-[90%] md:h-full'}`}>
-                            <div
-                                ref={messagesContainerRef}
-                                className={`w-full pt-4 pb-4 ${messages.length === 0 ? 'h-full flex items-center justify-center' : 'min-h-[15%] max-h-[85%]'}`}
-                            >
-                                <div className="w-[95vw] md:w-[532px] lg:w-[720px]">
-                                    {messages.length === 0 ? (
-                                        <div className="h-full flex items-center justify-center">
-                                            <p className={`text-center font-semibold text-3xl md:text-5xl px-4 ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
-                                                {fullGreeting}
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-4 w-full">
-                                            {messages.map((message) => (
-                                                <ChatMessage
-                                                    key={message.id}
-                                                    message={{
-                                                        id: message.id,
-                                                        content: message.content,
-                                                        role: message.role,
-                                                        // @ts-expect-error createdAt is not defined in message
-                                                        timestamp: new Date(message.createdAt),
-                                                    }}
-                                                />
-                                            ))}
-                                            {isThinking && (
-                                                <div className="h-2 w-2 py-6 relative">
-                                                    <AnimatedShinyText className="text-center text-md font-semibold text-[#6A4DFC]">Thinking...</AnimatedShinyText>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                    <ScrollToBottomButton
-                                        onClick={() => scrollToBottom('smooth')}
-                                        show={showScrollButton}
-                                    />
-                                    <div ref={messagesEndRef} />
+                <div className="relative w-full h-full overflow-hidden">
+                    <div
+                        ref={messagesContainerRef}
+                        className={`w-full overflow-y-auto h-full scrollbar-hide`}
+                        onScroll={handleScroll}
+                    >
+                        <div className={`flex justify-center ${messages.length === 0 ? 'items-center' : 'items-end'} w-full min-h-full`}>
+                            <div className={`relative w-[95vw] md:w-[532px] lg:w-[720px] ${messages.length === 0 ? 'h-full' : 'min-h-full'}`}>
+                                <div className={`w-full pt-4 pb-4 ${messages.length === 0 ? 'h-full flex items-center justify-center' : 'min-h-full'}`}>
+                                    <div className="w-[95vw] md:w-[532px] lg:w-[720px]">
+                                        {messages.length === 0 ? (
+                                            <div className="h-full flex items-center justify-center">
+                                                <p className={`text-center font-semibold text-3xl md:text-5xl px-4 ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
+                                                    {fullGreeting}
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4">
+                                                {messages.map((message) => (
+                                                    <ChatMessage
+                                                        key={message.id}
+                                                        message={message}
+                                                    />
+                                                ))}
+                                                {isThinking && (
+                                                    <div className="flex items-start space-x-3 p-4">
+                                                        <div className="w-8 h-8 rounded-full bg-[#6A4DFC] flex items-center justify-center flex-shrink-0">
+                                                            <span className="text-white text-sm font-medium">AI</span>
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <div className="bg-gray-100 dark:bg-white/10 p-3 rounded-lg rounded-tl-none">
+                                                                <div className="flex space-x-2">
+                                                                    <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-pulse"></div>
+                                                                    <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-pulse delay-75"></div>
+                                                                    <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-pulse delay-150"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                        <div ref={messagesEndRef} />
+                                        <ScrollToBottomButton
+                                            show={showScrollButton}
+                                            onClick={() => scrollToBottom('smooth')}
+                                            className="mb-4"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
