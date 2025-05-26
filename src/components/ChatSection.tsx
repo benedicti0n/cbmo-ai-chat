@@ -188,14 +188,14 @@ const ChatSection = () => {
         >
             <div className="w-full h-full flex flex-col">
                 {/* Messages Container */}
-                <div className={`w-full overflow-y-auto ${messages.length === 0 ? 'h-full' : 'flex-1'} h-full`}>
+                <div className={`w-full overflow-y-auto ${messages.length === 0 ? 'h-full' : 'flex-1'} h-full scrollbar-hide`}>
                     <div className={`flex justify-center ${messages.length === 0 ? 'items-center' : 'items-end'} w-full h-full`}>
-                        <div className={`relative w-[95vw] md:w-[532px] lg:w-[720px] ${messages.length === 0 ? 'h-full' : 'h-[80%]'}`}>
+                        <div className={`relative w-[95vw] md:w-[532px] lg:w-[720px] ${messages.length === 0 ? 'h-full' : 'h-[90%] md:h-full'}`}>
                             <div
                                 ref={messagesContainerRef}
-                                className={`w-full px-2 pt-4 pb-4 ${messages.length === 0 ? 'h-full flex items-center justify-center' : 'min-h-[15%] max-h-[85%]'}`}
+                                className={`w-full pt-4 pb-4 ${messages.length === 0 ? 'h-full flex items-center justify-center' : 'min-h-[15%] max-h-[85%]'}`}
                             >
-                                <div className="w-full">
+                                <div className="w-[95vw] md:w-[532px] lg:w-[720px]">
                                     {messages.length === 0 ? (
                                         <div className="h-full flex items-center justify-center">
                                             <p className={`text-center font-semibold text-3xl md:text-5xl px-4 ${theme === 'light' ? 'text-[#6A4DFC]' : 'text-white'}`}>
@@ -223,13 +223,13 @@ const ChatSection = () => {
                                             )}
                                         </div>
                                     )}
+                                    <ScrollToBottomButton
+                                        onClick={() => scrollToBottom('smooth')}
+                                        show={showScrollButton}
+                                    />
                                     <div ref={messagesEndRef} />
                                 </div>
                             </div>
-                            <ScrollToBottomButton
-                                onClick={() => scrollToBottom('smooth')}
-                                show={showScrollButton}
-                            />
                         </div>
                     </div>
                 </div>

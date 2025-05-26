@@ -140,7 +140,7 @@ const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreami
         <div className="w-[95vw] md:w-[532px] lg:w-[720px] relative bottom-0">
             <div
                 className={`w-full max-h-[400px] flex flex-col justify-end 
-                    ${theme === 'light' ? 'bg-[#6A4DFC]/10' : 'bg-[#6A4DFC]/[10%]'} 
+                    ${theme === 'light' ? 'bg-[#6A4DFC]/30' : 'bg-[#6A4DFC]/10'} 
                     rounded-t-xl px-2 pt-2 overflow-hidden`}
             >
                 <div className={`rounded-t-lg border-x-[1px] border-t-[1px] border-[#6A4DFC] ${theme === 'light' ? 'bg-white' : ''}`}>
@@ -194,7 +194,8 @@ const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreami
                             </Tooltip>
                             <Tooltip content={message.trim() ? 'Send' : 'Please enter a message'}>
                                 <Button
-                                    className={`h-8 w-8 p-0 border-[2px] border-[#6a4dfc] ${message.trim() && !isStreaming ? 'bg-[#6A4DFC] hover:bg-[#6A4DFC]/90' : 'bg-white/20 cursor-not-allowed'} transition-colors duration-100 ease-in-out`}
+                                    variant="default"
+                                    className={`h-8 w-8 p-0`}
                                     disabled={!message.trim() || isStreaming || isLoading}
                                     onClick={handleSend}
                                 >
