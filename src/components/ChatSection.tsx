@@ -12,6 +12,7 @@ import useChatHistoryStore from '@/stores/useChatHistoryStore';
 import axios from 'axios';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { AnimatedShinyText } from './magicui/animated-shiny-text';
 
 type ScrollBehavior = 'auto' | 'smooth';
 
@@ -209,19 +210,8 @@ const ChatSection = () => {
                                                     />
                                                 ))}
                                                 {isThinking && (
-                                                    <div className="flex items-start space-x-3 p-4">
-                                                        <div className="w-8 h-8 rounded-full bg-[#6A4DFC] flex items-center justify-center flex-shrink-0">
-                                                            <span className="text-white text-sm font-medium">AI</span>
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <div className="bg-gray-100 dark:bg-white/10 p-3 rounded-lg rounded-tl-none">
-                                                                <div className="flex space-x-2">
-                                                                    <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-pulse"></div>
-                                                                    <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-pulse delay-75"></div>
-                                                                    <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-pulse delay-150"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                    <div className="h-2 w-2 py-6 relative">
+                                                        <AnimatedShinyText className="text-center text-md font-semibold text-[#6A4DFC]">Thinking...</AnimatedShinyText>
                                                     </div>
                                                 )}
                                             </div>

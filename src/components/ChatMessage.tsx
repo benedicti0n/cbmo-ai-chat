@@ -47,8 +47,8 @@ const ChatMessage = React.memo(({ message }: ChatMessageProps) => {
                         ? 'bg-[#6A4DFC]/30 backdrop-blur-sm rounded-br-none text-[#3F29C7] border-[1px] border-[#6A4DFC]'
                         : 'bg-[#6A4DFC]/[30%] backdrop-blur-sm rounded-br-none text-white border-[1px] border-[#6A4DFC]'}`
                     : `${theme === 'light'
-                        ? 'bg-white text-[#3F29C7] border-[1px] border-white/20'
-                        : 'bg-white/10 text-[#3F29C7] border-[1px] border-white/20'} text-foreground rounded-bl-none`
+                        ? 'bg-gray-100 text-[#3F29C7] border-[1px] border-gray-200'
+                        : 'bg-white/10 text-[#3F29C7] border-[1px] border-white/10'} text-foreground rounded-bl-none`
                     }`}
 
             >
