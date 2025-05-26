@@ -108,7 +108,7 @@ export default function DesktopSidebar() {
   return (
     <>
       {/* Sidebar Toggle Button */}
-      <div className={`fixed top-4 left-4 z-[80] flex items-center justify-center gap-2 backdrop-blur-md ${isOpen ? 'p-0' : 'p-2 rounded-xl border border-[#6A4DFC]'} ${theme === 'light' ? 'bg-[#E1DBFE]' : 'bg-[#231E40]'} `}>
+      <div className={`fixed top-4 left-4 z-[60] flex items-center justify-center gap-2 backdrop-blur-md ${isOpen ? 'p-0' : 'p-2 rounded-xl border border-[#6A4DFC]'} ${theme === 'light' ? 'bg-[#E1DBFE]' : 'bg-[#231E40]'} `}>
         <Button
           onClick={toggleSidebar}
           variant="ghost"
