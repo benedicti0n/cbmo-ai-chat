@@ -53,7 +53,6 @@ A modern, AI-powered chat application built with Next.js, featuring seamless aut
   - TypeScript
   - Tailwind CSS
   - Prisma ORM
-  - React Query
   - Zustand for state management
 
 ## 📦 Deliverables
