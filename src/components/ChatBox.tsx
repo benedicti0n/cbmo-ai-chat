@@ -28,7 +28,7 @@ interface ChatBoxProps {
 
 const ChatBox = ({ onSendMessage, onStreamingComplete, isStreaming, setIsStreaming, isLoading, setIsLoading, conversationId, clerkId }: ChatBoxProps) => {
     const { theme } = useThemeStore();
-    const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash-preview');
+    const [selectedModel, setSelectedModel] = useState('gemini-2.0-flash');
     const [message, setMessage] = useState('');
 
     const handleSend = async () => {

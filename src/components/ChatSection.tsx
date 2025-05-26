@@ -191,8 +191,8 @@ const ChatSection = () => {
                         className={`w-full overflow-y-auto h-full scrollbar-hide`}
                         onScroll={handleScroll}
                     >
-                        <div className={`flex justify-center ${messages.length === 0 ? 'items-center' : 'items-end'} w-full min-h-full`}>
-                            <div className={`relative w-[95vw] md:w-[532px] lg:w-[720px] ${messages.length === 0 ? 'h-full' : 'min-h-full'}`}>
+                        <div className={`flex justify-center ${messages.length === 0 ? 'items-center' : 'items-end'} w-full h-[calc(100%-80px)]`}>
+                            <div className={`relative w-[95vw] md:w-[532px] lg:w-[720px] ${messages.length === 0 ? 'h-full' : 'h-[80%]'}`}>
                                 <div className={`w-full pt-4 pb-4 ${messages.length === 0 ? 'h-full flex items-center justify-center' : 'min-h-full'}`}>
                                     <div className="w-[95vw] md:w-[532px] lg:w-[720px]">
                                         {messages.length === 0 ? (
